@@ -1,7 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:ocr_trading_jurnal/pages/home_page.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'models/account_transaction_model.dart';
+import 'models/trade_model.dart';
+import 'pages/dashboard_page.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Hive.initFlutter();
+
+  Hive.registerAdapter(TradeModelAdapter());
+
+  Hive.registerAdapter(AccountTransactionModelAdapter());
+
   runApp(const MyApp());
 }
 
@@ -10,9 +22,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomePage(),
+      title: 'OCR Trading Journal',
+      home: const DashboardPage(),
     );
   }
 }

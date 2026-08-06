@@ -39,6 +39,10 @@ import '../models/trade_model.dart';
 import '../widgets/trade_card.dart';
 import '../services/ocr_service.dart';
 import '../widgets/action_buttons.dart';
+import '../services/hive_service.dart';
+import 'history_page.dart';
+import 'dashboard_page.dart';
+import 'account_transaction_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -76,10 +80,65 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Future<void> saveTrade() async {
+    if (trade == null) return;
+
+    await HiveService.saveTrade(trade!);
+
+    // DEBUG
+    final trades = await HiveService.getTrades();
+    print("TOTAL TRADE = ${trades.length}");
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text("Trade berhasil disimpan")));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Trading OCR")),
+      appBar: AppBar(
+        title: const Text("Trading OCR"),
+
+        actions: [
+          // DASHBOARD
+          IconButton(
+            icon: const Icon(Icons.dashboard),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const DashboardPage()),
+              );
+            },
+          ),
+
+          // HISTORY
+          IconButton(
+            icon: const Icon(Icons.history),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const HistoryPage()),
+              );
+            },
+          ),
+
+          // deposit page
+          IconButton(
+            icon: const Icon(Icons.account_balance_wallet),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const AccountTransactionPage(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(15),
         child: SingleChildScrollView(
@@ -92,7 +151,17 @@ class _HomePageState extends State<HomePage> {
 
               const SizedBox(height: 20),
 
-              if (trade != null) TradeCard(trade: trade!),
+              if (trade != null) ...[
+                TradeCard(trade: trade!),
+
+                const SizedBox(height: 15),
+
+                ElevatedButton.icon(
+                  onPressed: saveTrade,
+                  icon: const Icon(Icons.save),
+                  label: const Text("Simpan Trade"),
+                ),
+              ],
 
               const SizedBox(height: 20),
             ],
