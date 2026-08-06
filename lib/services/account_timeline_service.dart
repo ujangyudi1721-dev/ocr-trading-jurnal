@@ -87,9 +87,52 @@ class AccountTimelineService {
     }
 
     print("==============================");
+
+    // ==========================================
+    // HITUNG RUNNING BALANCE
+    // ==========================================
+
+    calculateBalance(timeline);
+
     // ============================================================
     // RETURN
     // ============================================================
+
+    return timeline;
+  }
+  // ============================================================
+  // CALCULATE RUNNING BALANCE
+  //
+  // Timeline HARUS sudah di-sort sebelum masuk ke method ini.
+  //
+  // Deposit  -> +
+  // Withdraw -> -
+  // Trade    -> Profit / Loss
+  // ============================================================
+
+  static List<AccountTimelineModel> calculateBalance(
+    List<AccountTimelineModel> timeline,
+  ) {
+    double balance = 0;
+
+    for (final item in timeline) {
+      switch (item.type) {
+        case "Deposit":
+          balance += item.amount;
+          break;
+
+        case "Withdraw":
+          balance -= item.amount;
+          break;
+
+        case "Trade":
+          balance += item.amount;
+          break;
+      }
+
+      // simpan saldo setelah transaksi
+      item.balance = balance;
+    }
 
     return timeline;
   }

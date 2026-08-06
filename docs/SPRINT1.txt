@@ -1,17 +1,18 @@
-Analytics Foundation
+Sprint 1
 
-█████████░ 92%
+██████████░░ 80%
 
-✅ DateHelper
+✔ OCR Engine
+✔ OCR Parser
+✔ Hive Database
+✔ History Page
+✔ Dashboard Basic
 
-✅ Timeline Generate
+✔ Date Helper
+✔ Timeline Generate
+✔ Timeline Sort
+✔ Running Balance
 
-✅ Timeline Merge
-
-✅ Timeline Sorting
-
-⬜ Running Balance
-
-⬜ Analytics Engine v3
-
-⬜ Dashboard Refactor
+⬜ Analytics Engine
+⬜ Drawdown Engine
+⬜ Dashboard V2

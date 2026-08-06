@@ -37,60 +37,49 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Future<void> loadStatistic() async {
-  final trades = await HiveService.getTrades();
+    final trades = await HiveService.getTrades();
 
-  final transactions =
-      await HiveService.getAccountTransactions();
+    final transactions = await HiveService.getAccountTransactions();
 
-  // ==========================================
-  // TIMELINE DEBUG
-  // ==========================================
+    // ==========================================
+    // TIMELINE DEBUG
+    // ==========================================
 
-  final timeline =
-      AccountTimelineService.generate(
-        transactions: transactions,
-        trades: trades,
-      );
-
-  print("");
-  print("========== TIMELINE ==========");
-
-  for (final item in timeline) {
-    print(
-      "${item.date} | "
-      "${item.type} | "
-      "${item.amount} | "
-      "${item.reference}",
+    final timeline = AccountTimelineService.generate(
+      transactions: transactions,
+      trades: trades,
     );
+
+    print("");
+    print("========== TIMELINE ==========");
+
+    for (final item in timeline) {
+      print(
+        "${item.date} | "
+        "${item.type} | "
+        "${item.amount} | "
+        "Balance=${item.balance.toStringAsFixed(2)} | "
+        "${item.reference}",
+      );
+    }
+
+    print("==============================");
+    print("");
+
+    // ==========================================
+    // DASHBOARD
+    // ==========================================
+
+    stats = StatisticService.calculate(trades);
+
+    pairStats = StatisticService.calculatePairPerformance(trades);
+
+    accountSummary = AccountStatisticService.calculate(transactions, trades);
+
+    health = AccountHealthService.calculate(accountSummary!);
+
+    setState(() {});
   }
-
-  print("==============================");
-  print("");
-
-  // ==========================================
-  // DASHBOARD
-  // ==========================================
-
-  stats = StatisticService.calculate(trades);
-
-  pairStats =
-      StatisticService.calculatePairPerformance(
-    trades,
-  );
-
-  accountSummary =
-      AccountStatisticService.calculate(
-    transactions,
-    trades,
-  );
-
-  health =
-      AccountHealthService.calculate(
-    accountSummary!,
-  );
-
-  setState(() {});
-}
 
   @override
   Widget build(BuildContext context) {
@@ -99,45 +88,45 @@ class _DashboardPageState extends State<DashboardPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Dashboard"),
-      actions: [
-        // DASHBOARD
-        IconButton(
-          icon: const Icon(Icons.scanner),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const HomePage()),
-            );
-          },
-        ),
+      appBar: AppBar(
+        title: const Text("Dashboard"),
+        actions: [
+          // DASHBOARD
+          IconButton(
+            icon: const Icon(Icons.scanner),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const HomePage()),
+              );
+            },
+          ),
 
-        // HISTORY
-        IconButton(
-          icon: const Icon(Icons.history),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const HistoryPage()),
-            );
-          },
-        ),
+          // HISTORY
+          IconButton(
+            icon: const Icon(Icons.history),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const HistoryPage()),
+              );
+            },
+          ),
 
-        // deposit page
-        IconButton(
-          icon: const Icon(Icons.account_balance_wallet),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const AccountTransactionPage()),
-            );
-          },
-        ),
-      ],
-      
+          // deposit page
+          IconButton(
+            icon: const Icon(Icons.account_balance_wallet),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const AccountTransactionPage(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
-
-        
 
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(15),
