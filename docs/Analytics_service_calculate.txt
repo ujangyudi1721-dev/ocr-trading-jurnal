@@ -1,0 +1,25 @@
+Trade
+
+↓
+
+AnalyticsService
+
+↓
+
+Hitung Trade
+
+↓
+
+Hitung Pair
+
+↓
+
+Hitung Equity
+
+↓
+
+Hitung Drawdown
+
+↓
+
+Return AnalyticsResult

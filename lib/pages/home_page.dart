@@ -1,36 +1,3 @@
-/*
-======================================================
-
-FILE :
-home_page.dart
-
-TUGAS :
-Halaman utama aplikasi OCR Trading
-
-FITUR :
-- Pilih Screenshot
-- Crop Otomatis
-- OCR MLKit
-- Parsing Data Trading
-- Menampilkan Hasil Parsing
-
-FLOW :
-
-Pilih Screenshot
-        ↓
-Crop Popup
-        ↓
-OCR
-        ↓
-Parser
-        ↓
-TradeModel
-        ↓
-Tampil di Card
-
-======================================================
-*/
-
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -53,9 +20,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   File? imageFile;
-
   String resultText = "";
-
   TradeModel? trade;
 
   Future<void> pickImage() async {
@@ -74,6 +39,18 @@ class _HomePageState extends State<HomePage> {
     if (imageFile == null) return;
 
     final result = await OCRService.scanTrade(imageFile!);
+
+    // ============================
+    // TEST Date Helper
+    // ============================
+
+    print("===== DATE TEST =====");
+
+    print(result.openDateTime);
+
+    print(result.closeDateTime);
+
+    print("=====================");
 
     setState(() {
       trade = result;

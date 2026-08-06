@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+import '../utils/date_helper.dart';
 
 part 'trade_model.g.dart';
 
@@ -50,4 +51,11 @@ class TradeModel extends HiveObject {
     required this.openPrice,
     required this.closePrice,
   });
+  DateTime? get openDateTime {
+    return DateHelper.parse(openTime);
+  }
+
+  DateTime? get closeDateTime {
+    return DateHelper.parse(closeTime);
+  }
 }

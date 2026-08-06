@@ -1,0 +1,17 @@
+AnalyticsResult
+
+│
+
+├── Trade Statistic
+
+├── Pair Statistic
+
+├── Equity
+
+├── Drawdown ⭐
+
+├── Daily Summary
+
+├── Weekly Summary
+
+├── Monthly Summary

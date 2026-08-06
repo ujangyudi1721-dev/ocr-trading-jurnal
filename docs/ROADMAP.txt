@@ -1,0 +1,303 @@
+============================================================
+TPMS - Trading Performance Management System
+Roadmap Development
+Version : 0.1
+Platform : Flutter Android
+Database : Hive
+OCR : Google ML Kit
+============================================================
+
+VISI PROJECT
+
+Membangun aplikasi Trading Performance Management System
+yang mampu menggantikan Trading Journal berbasis Excel
+dengan kemampuan OCR otomatis, Analytics, Risk Management,
+Psychology Analysis, Report Generator dan AI Advisor.
+
+============================================================
+PROJECT FLOW
+============================================================
+
+Screenshot MT5
+        │
+        ▼
+OCR Engine
+        │
+        ▼
+Trade Parser
+        │
+        ▼
+Trade Database
+        │
+        ▼
+Analytics Engine
+        │
+ ┌──────┼───────────────┬──────────────┐
+ ▼      ▼               ▼              ▼
+Dashboard  Calendar   Reports      AI Advisor
+        │
+        ▼
+Cloud Sync
+
+============================================================
+MILESTONE
+============================================================
+
+[✓] MILESTONE 1
+OCR FOUNDATION
+
+Status : COMPLETED
+
+✓ Image Picker
+✓ Auto Crop
+✓ Google ML Kit OCR
+✓ OCR Parser
+✓ Trade Model
+✓ Hive Database
+✓ History Trade
+✓ Detail Trade
+✓ Dashboard Basic
+✓ Deposit
+✓ Withdraw
+✓ Pair Performance
+
+------------------------------------------------------------
+
+[ ] MILESTONE 2
+ANALYTICS ENGINE
+
+Status : IN PROGRESS
+
+□ Equity Engine
+□ Drawdown Engine
+□ Peak Balance
+□ Current Drawdown
+□ Maximum Drawdown
+□ Profit Factor
+□ Recovery Factor
+□ Average Win
+□ Average Loss
+□ Expectancy
+□ Consecutive Win
+□ Consecutive Loss
+
+------------------------------------------------------------
+
+[ ] MILESTONE 3
+TRADE CLASSIFICATION
+
+□ Strategy
+□ Session
+□ Emotion
+□ Risk %
+□ Setup Quality
+□ Entry Reason
+□ Exit Reason
+□ Notes
+□ Screenshot
+
+------------------------------------------------------------
+
+[ ] MILESTONE 4
+RISK MANAGEMENT ENGINE
+
+□ Daily Loss Limit
+□ Daily Profit Target
+□ Maximum Risk
+□ Overtrade Detection
+□ Martingale Detection
+□ Revenge Detection
+□ FOMO Detection
+□ Risk Score
+□ Health Score
+
+------------------------------------------------------------
+
+[ ] MILESTONE 5
+PSYCHOLOGY ENGINE
+
+□ Performance by Emotion
+□ Performance by Session
+□ Performance by Strategy
+□ Performance by Weekday
+□ Best Trading Hour
+□ Worst Trading Hour
+
+------------------------------------------------------------
+
+[ ] MILESTONE 6
+REPORT ENGINE
+
+□ Daily Report
+□ Weekly Report
+□ Monthly Report
+□ Yearly Report
+□ PDF Export
+□ Excel Export
+□ CSV Export
+
+------------------------------------------------------------
+
+[ ] MILESTONE 7
+VISUALIZATION
+
+□ Equity Chart
+□ Balance Chart
+□ Drawdown Chart
+□ Profit Calendar
+□ Monthly Heatmap
+
+------------------------------------------------------------
+
+[ ] MILESTONE 8
+CLOUD
+
+□ Login
+□ Register
+□ Backup
+□ Restore
+□ Multi Device
+□ Firebase Sync
+
+------------------------------------------------------------
+
+[ ] MILESTONE 9
+AI TRADING COACH
+
+□ Performance Analysis
+□ Habit Detection
+□ Risk Recommendation
+□ Trading Advice
+□ Weekly Evaluation
+□ Monthly Evaluation
+
+============================================================
+SPRINT
+============================================================
+
+SPRINT 1
+Analytics Foundation
+
+Status : IN PROGRESS
+
+[✓] AnalyticsResultModel
+[✓] EquityPointModel
+[✓] AnalyticsService
+[✓] DrawdownModel
+[✓] AnalyticsService V2
+[✓] Date Helper
+[✓] TradeModel Date Getter
+[✓] Timeline Engine
+[ ] Dashboard Refactor
+[ ] Equity Engine
+[ ] Peak Balance Engine
+
+------------------------------------------------------------
+
+SPRINT 2
+Trade Classification
+
+[ ] Trade Metadata
+[ ] Emotion
+[ ] Strategy
+[ ] Session
+[ ] Risk %
+[ ] Notes
+[ ] Setup Grade
+
+------------------------------------------------------------
+
+SPRINT 3
+Risk Engine
+
+[ ] Daily Risk
+[ ] Maximum Risk
+[ ] Risk Score
+[ ] Overtrade
+[ ] Revenge
+[ ] Martingale
+
+------------------------------------------------------------
+
+SPRINT 4
+Psychology Engine
+
+[ ] Emotion Statistic
+[ ] Strategy Statistic
+[ ] Session Statistic
+[ ] Best Trading Hour
+[ ] Worst Trading Hour
+
+------------------------------------------------------------
+
+SPRINT 5
+Report Engine
+
+[ ] Daily Report
+[ ] Weekly Report
+[ ] Monthly Report
+[ ] PDF Export
+[ ] Excel Export
+
+------------------------------------------------------------
+
+SPRINT 6
+Cloud
+
+[ ] Authentication
+[ ] Backup
+[ ] Restore
+[ ] Sync
+
+------------------------------------------------------------
+
+SPRINT 7
+AI Coach
+
+[ ] Trading Evaluation
+[ ] Habit Detection
+[ ] Recommendation
+[ ] Weekly Coach
+[ ] Monthly Coach
+
+============================================================
+VERSION HISTORY
+============================================================
+
+v0.1
+OCR Foundation
+
+v0.2
+Analytics Foundation
+
+v0.3
+Risk Engine
+
+v0.4
+Psychology Engine
+
+v0.5
+Report Engine
+
+v0.6
+Cloud Sync
+
+v1.0
+Trading Performance Management System
+
+============================================================
+TARGET
+============================================================
+
+Menggantikan Trading Journal Excel menjadi aplikasi Android
+yang mampu melakukan:
+
+✓ OCR Otomatis
+✓ Analisis Trading
+✓ Analisis Risiko
+✓ Analisis Psikologi
+✓ Laporan Profesional
+✓ AI Trading Coach
+✓ Cloud Synchronization
+
+============================================================

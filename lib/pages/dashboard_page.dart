@@ -12,6 +12,7 @@ import '../services/account_health_service.dart';
 import 'history_page.dart';
 import 'account_transaction_page.dart';
 import 'home_page.dart';
+import '../services/account_timeline_service.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -36,20 +37,60 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Future<void> loadStatistic() async {
-    final trades = await HiveService.getTrades();
+  final trades = await HiveService.getTrades();
 
-    final transactions = await HiveService.getAccountTransactions();
+  final transactions =
+      await HiveService.getAccountTransactions();
 
-    stats = StatisticService.calculate(trades);
+  // ==========================================
+  // TIMELINE DEBUG
+  // ==========================================
 
-    pairStats = StatisticService.calculatePairPerformance(trades);
+  final timeline =
+      AccountTimelineService.generate(
+        transactions: transactions,
+        trades: trades,
+      );
 
-    accountSummary = AccountStatisticService.calculate(transactions, trades);
+  print("");
+  print("========== TIMELINE ==========");
 
-    health = AccountHealthService.calculate(accountSummary!);
-
-    setState(() {});
+  for (final item in timeline) {
+    print(
+      "${item.date} | "
+      "${item.type} | "
+      "${item.amount} | "
+      "${item.reference}",
+    );
   }
+
+  print("==============================");
+  print("");
+
+  // ==========================================
+  // DASHBOARD
+  // ==========================================
+
+  stats = StatisticService.calculate(trades);
+
+  pairStats =
+      StatisticService.calculatePairPerformance(
+    trades,
+  );
+
+  accountSummary =
+      AccountStatisticService.calculate(
+    transactions,
+    trades,
+  );
+
+  health =
+      AccountHealthService.calculate(
+    accountSummary!,
+  );
+
+  setState(() {});
+}
 
   @override
   Widget build(BuildContext context) {

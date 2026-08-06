@@ -1,5 +1,6 @@
 import 'equity_point_model.dart';
 import 'pair_statistic_model.dart';
+import 'drawdown_model.dart';
 
 class AnalyticsResultModel {
   final int totalTrade;
@@ -21,6 +22,8 @@ class AnalyticsResultModel {
 
   final List<PairStatisticModel> pairPerformance;
 
+  final DrawdownModel drawdown;
+
   AnalyticsResultModel({
     required this.totalTrade,
     required this.totalWin,
@@ -34,5 +37,6 @@ class AnalyticsResultModel {
     required this.profitFactor,
     required this.equity,
     required this.pairPerformance,
+    required this.drawdown,
   });
 }

@@ -1,12 +1,18 @@
 import '../models/analytics_result_model.dart';
+import '../models/drawdown_model.dart';
 import '../models/equity_point_model.dart';
 import '../models/pair_statistic_model.dart';
 import '../models/trade_model.dart';
 
 class AnalyticsService {
+
   static AnalyticsResultModel calculate(
     List<TradeModel> trades,
   ) {
+
+    // ==========================================
+    // TRADE STATISTIC
+    // ==========================================
 
     int totalTrade = trades.length;
 
@@ -16,11 +22,31 @@ class AnalyticsService {
     double grossProfit = 0;
     double grossLoss = 0;
 
+    // ==========================================
+    // EQUITY
+    // ==========================================
+
     double balance = 0;
 
     List<EquityPointModel> equity = [];
 
+    // ==========================================
+    // DRAWDOWN
+    // ==========================================
+
+    double peakBalance = 0;
+
+    double maximumDrawdown = 0;
+
+    // ==========================================
+    // PAIR PERFORMANCE
+    // ==========================================
+
     Map<String, PairStatisticModel> pairMap = {};
+
+    // ==========================================
+    // MAIN LOOP
+    // ==========================================
 
     for (int i = 0; i < trades.length; i++) {
 
@@ -32,21 +58,26 @@ class AnalyticsService {
               ) ??
               0;
 
-      // =========================
+      // ==========================================
       // WIN / LOSS
-      // =========================
+      // ==========================================
 
       if (profit >= 0) {
+
         totalWin++;
+
         grossProfit += profit;
+
       } else {
+
         totalLoss++;
+
         grossLoss += profit.abs();
       }
 
-      // =========================
+      // ==========================================
       // EQUITY
-      // =========================
+      // ==========================================
 
       balance += profit;
 
@@ -57,9 +88,30 @@ class AnalyticsService {
         ),
       );
 
-      // =========================
+      // ==========================================
+      // DRAWDOWN
+      // ==========================================
+
+      if (balance > peakBalance) {
+        peakBalance = balance;
+      }
+
+      double drawdown = 0;
+
+      if (peakBalance > 0) {
+        drawdown =
+            ((peakBalance - balance) /
+                    peakBalance) *
+                100;
+      }
+
+      if (drawdown > maximumDrawdown) {
+        maximumDrawdown = drawdown;
+      }
+
+      // ==========================================
       // PAIR PERFORMANCE
-      // =========================
+      // ==========================================
 
       if (!pairMap.containsKey(trade.pair)) {
 
@@ -83,6 +135,23 @@ class AnalyticsService {
             old.profit + profit,
       );
     }
+
+    // ==========================================
+    // CURRENT DRAWDOWN
+    // ==========================================
+
+    double currentDrawdown = 0;
+
+    if (peakBalance > 0) {
+      currentDrawdown =
+          ((peakBalance - balance) /
+                  peakBalance) *
+              100;
+    }
+
+    // ==========================================
+    // FINAL STATISTIC
+    // ==========================================
 
     double netProfit =
         grossProfit - grossLoss;
@@ -115,18 +184,40 @@ class AnalyticsService {
           grossProfit / grossLoss;
     }
 
+    // ==========================================
+    // RETURN RESULT
+    // ==========================================
+
     return AnalyticsResultModel(
+
+      // Trade Statistic
       totalTrade: totalTrade,
       totalWin: totalWin,
       totalLoss: totalLoss,
+
       grossProfit: grossProfit,
       grossLoss: grossLoss,
       netProfit: netProfit,
+
       winRate: winRate,
+
       averageWin: averageWin,
       averageLoss: averageLoss,
+
       profitFactor: profitFactor,
+
+      // Equity
       equity: equity,
+
+      // Drawdown
+      drawdown: DrawdownModel(
+        peakBalance: peakBalance,
+        currentBalance: balance,
+        currentDrawdown: currentDrawdown,
+        maximumDrawdown: maximumDrawdown,
+      ),
+
+      // Pair Performance
       pairPerformance:
           pairMap.values.toList(),
     );
