@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../models/trade_model.dart';
 import '../services/hive_service.dart';
 import 'trade_detail_page.dart';
-import '../services/statistic_service.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
@@ -24,23 +23,9 @@ class _HistoryPageState extends State<HistoryPage> {
   Future<void> loadTrades() async {
     trades = await HiveService.getTrades();
 
-    final stats = StatisticService.calculate(trades);
-
     print("=== STATISTIC ===");
 
-    print("Total Trade : ${stats.totalTrade}");
-
-    print("Total Win : ${stats.totalWin}");
-
-    print("Total Loss : ${stats.totalLoss}");
-
-    print("Win Rate : ${stats.winRate.toStringAsFixed(2)}");
-
-    print("Gross Profit : ${stats.grossProfit}");
-
-    print("Gross Loss : ${stats.grossLoss}");
-
-    print("Net Profit : ${stats.netProfit.toStringAsFixed(2)}");
+    print("Total Trade : ${trades.length}");
 
     setState(() {});
   }

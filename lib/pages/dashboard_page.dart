@@ -45,6 +45,68 @@ class _DashboardPageState extends State<DashboardPage> {
 
     analytics = AnalyticsEngine.calculate(timeline);
 
+    final result = analytics!;
+
+    // =========================
+    // ANALYTICS
+    // =========================
+
+    print("");
+    print("========== ANALYTICS ==========");
+
+    print("Trade           : ${result.totalTrade}");
+    print("Win             : ${result.totalWin}");
+    print("Loss            : ${result.totalLoss}");
+
+    print("Gross Profit    : ${result.grossProfit}");
+    print("Gross Loss      : ${result.grossLoss}");
+    print("Net Profit      : ${result.netProfit}");
+
+    print("Win Rate        : ${result.winRate}");
+    print("Average Win     : ${result.averageWin}");
+    print("Average Loss    : ${result.averageLoss}");
+    print("Profit Factor   : ${result.profitFactor}");
+
+    print("Deposit         : ${result.totalDeposit}");
+    print("Withdraw        : ${result.totalWithdraw}");
+
+    print("Balance         : ${result.currentBalance}");
+
+    print("Peak Balance    : ${result.drawdown.peakBalance}");
+    print("Current DD      : ${result.drawdown.currentDrawdown}");
+    print("Maximum DD      : ${result.drawdown.maximumDrawdown}");
+
+    print("===============================");
+
+    // =========================
+    // EQUITY
+    // =========================
+
+    print("");
+    print("========== EQUITY ==========");
+
+    for (final point in result.equity) {
+      print("${point.index} -> ${point.balance}");
+    }
+
+    print("============================");
+
+    // =========================
+    // PAIR PERFORMANCE
+    // =========================
+
+    print("");
+    print("===== PAIR PERFORMANCE =====");
+
+    for (final pair in result.pairPerformance) {
+      print(
+        "${pair.pair} | "
+        "Trade=${pair.totalTrade} | "
+        "Profit=${pair.profit}",
+      );
+    }
+
+    print("============================");
     if (!mounted) return;
 
     setState(() {});

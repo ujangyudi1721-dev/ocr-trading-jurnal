@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ocr_trading_jurnal/pages/home_page.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'models/account_transaction_model.dart';
 import 'models/trade_model.dart';

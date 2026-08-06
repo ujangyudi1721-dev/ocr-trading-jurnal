@@ -8,13 +8,10 @@ class AnalyticsEngine {
   // ==========================================================
   // ANALYTICS ENGINE
   //
+  // Single Source of Truth:
   // Semua statistik dihitung dari Timeline.
-  // Timeline merupakan Single Source of Truth.
   // ==========================================================
-
-  static AnalyticsResultModel calculate(
-    List<AccountTimelineModel> timeline,
-  ) {
+  static AnalyticsResultModel calculate(List<AccountTimelineModel> timeline) {
     // ========================================================
     // TRADE STATISTIC
     // ========================================================
@@ -36,46 +33,20 @@ class AnalyticsEngine {
     double currentBalance = 0;
 
     // ========================================================
-    // PLACEHOLDER
-    // (akan kita isi pada step berikutnya)
-    // ========================================================
-
-    List<EquityPointModel> equity = [];
-
-    List<PairStatisticModel> pairPerformance = [];
-
-    DrawdownModel drawdown = const DrawdownModel(
-      peakBalance: 0,
-      currentBalance: 0,
-      currentDrawdown: 0,
-      maximumDrawdown: 0,
-    );
-
-    // ========================================================
     // LOOP TIMELINE
     // ========================================================
 
-    for (final item in timeline) {
-      switch (item.type) {
-        // ----------------------------
-        // DEPOSIT
-        // ----------------------------
+    for (int i = 0; i < timeline.length; i++) {
+      final item = timeline[i];
 
+      switch (item.type) {
         case "Deposit":
           totalDeposit += item.amount;
           break;
 
-        // ----------------------------
-        // WITHDRAW
-        // ----------------------------
-
         case "Withdraw":
           totalWithdraw += item.amount;
           break;
-
-        // ----------------------------
-        // TRADE
-        // ----------------------------
 
         case "Trade":
           totalTrade++;
@@ -91,40 +62,32 @@ class AnalyticsEngine {
           break;
       }
 
-      // Balance terakhir selalu disimpan
+      // ====================================================
+      // CURRENT BALANCE
+      // ====================================================
+
       currentBalance = item.balance;
     }
 
     // ========================================================
-    // HITUNG HASIL
+    // FINAL CALCULATION
     // ========================================================
 
-    double netProfit = grossProfit - grossLoss;
+    final double netProfit = grossProfit - grossLoss;
 
-    double winRate = 0;
+    final double winRate = totalTrade == 0 ? 0 : (totalWin / totalTrade) * 100;
 
-    if (totalTrade > 0) {
-      winRate = (totalWin / totalTrade) * 100;
-    }
+    final double averageWin = totalWin == 0 ? 0 : grossProfit / totalWin;
 
-    double averageWin = 0;
+    final double averageLoss = totalLoss == 0 ? 0 : grossLoss / totalLoss;
 
-    if (totalWin > 0) {
-      averageWin = grossProfit / totalWin;
-    }
+    final double profitFactor = grossLoss == 0 ? 0 : grossProfit / grossLoss;
 
-    double averageLoss = 0;
+    final drawdown = calculateDrawdown(timeline);
 
-    if (totalLoss > 0) {
-      averageLoss = grossLoss / totalLoss;
-    }
+    final equity = calculateEquity(timeline);
 
-    double profitFactor = 0;
-
-    if (grossLoss > 0) {
-      profitFactor = grossProfit / grossLoss;
-    }
-
+    final pairPerformance = calculatePairPerformance(timeline);
     // ========================================================
     // RETURN
     // ========================================================
@@ -148,5 +111,101 @@ class AnalyticsEngine {
       pairPerformance: pairPerformance,
       drawdown: drawdown,
     );
+  }
+
+  // ==========================================================
+  // CALCULATE DRAWDOWN
+  // ==========================================================
+  static DrawdownModel calculateDrawdown(List<AccountTimelineModel> timeline) {
+    double peakBalance = 0;
+
+    double currentBalance = 0;
+
+    double currentDrawdown = 0;
+
+    double maximumDrawdown = 0;
+
+    for (final item in timeline) {
+      currentBalance = item.balance;
+
+      // Peak baru
+      if (currentBalance > peakBalance) {
+        peakBalance = currentBalance;
+      }
+
+      // Hitung drawdown dari peak
+      double drawdown = 0;
+
+      if (peakBalance > 0) {
+        drawdown = ((peakBalance - currentBalance) / peakBalance) * 100;
+      }
+
+      // Simpan drawdown terbesar
+      if (drawdown > maximumDrawdown) {
+        maximumDrawdown = drawdown;
+      }
+
+      // Drawdown terakhir
+      currentDrawdown = drawdown;
+    }
+
+    return DrawdownModel(
+      peakBalance: peakBalance,
+      currentBalance: currentBalance,
+      currentDrawdown: currentDrawdown,
+      maximumDrawdown: maximumDrawdown,
+    );
+  }
+
+  // ==========================================================
+  // CALCULATE EQUITY
+  // ==========================================================
+  static List<EquityPointModel> calculateEquity(
+    List<AccountTimelineModel> timeline,
+  ) {
+    final List<EquityPointModel> equity = [];
+
+    for (int i = 0; i < timeline.length; i++) {
+      equity.add(EquityPointModel(index: i + 1, balance: timeline[i].balance));
+    }
+
+    return equity;
+  }
+
+  // ==========================================================
+  // CALCULATE PAIR PERFORMANCE
+  // ==========================================================
+  static List<PairStatisticModel> calculatePairPerformance(
+    List<AccountTimelineModel> timeline,
+  ) {
+    final Map<String, PairStatisticModel> pairMap = {};
+
+    for (final item in timeline) {
+      if (item.type != "Trade") continue;
+
+      final pair = item.pair ?? "UNKNOWN";
+
+      if (!pairMap.containsKey(pair)) {
+        pairMap[pair] = PairStatisticModel(
+          pair: pair,
+          totalTrade: 0,
+          profit: 0,
+        );
+      }
+
+      final old = pairMap[pair]!;
+
+      pairMap[pair] = PairStatisticModel(
+        pair: old.pair,
+        totalTrade: old.totalTrade + 1,
+        profit: old.profit + item.amount,
+      );
+    }
+
+    final result = pairMap.values.toList();
+
+    result.sort((a, b) => b.profit.compareTo(a.profit));
+
+    return result;
   }
 }

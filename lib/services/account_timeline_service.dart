@@ -3,31 +3,27 @@ import '../models/account_transaction_model.dart';
 import '../models/trade_model.dart';
 
 class AccountTimelineService {
-  // ============================================================
+  // ==========================================================
   // GENERATE TIMELINE
   //
-  // Tahap ini HANYA membuat daftar event.
+  // Membuat daftar seluruh event account:
+  // - Deposit
+  // - Withdraw
+  // - Trade
   //
-  // Belum melakukan:
-  // - Sorting
-  // - Running Balance
-  // - Drawdown
-  //
-  // Semua proses tersebut akan dikerjakan pada step berikutnya.
-  // ============================================================
-
+  // Setelah semua event dibuat:
+  // 1. Sort berdasarkan tanggal
+  // 2. Hitung running balance
+  // ==========================================================
   static List<AccountTimelineModel> generate({
     required List<AccountTransactionModel> transactions,
     required List<TradeModel> trades,
   }) {
     final List<AccountTimelineModel> timeline = [];
 
-    // ============================================================
+    // ========================================================
     // ACCOUNT TRANSACTION
-    //
-    // Deposit
-    // Withdraw
-    // ============================================================
+    // ========================================================
 
     for (final transaction in transactions) {
       timeline.add(
@@ -36,81 +32,90 @@ class AccountTimelineService {
           type: transaction.type,
           amount: transaction.amount,
 
-          // sementara belum dihitung
+          // akan dihitung nanti
           balance: 0,
 
-          // referensi transaksi
           reference: transaction.type,
         ),
       );
     }
 
-    // ============================================================
+    // ========================================================
     // TRADE
-    // ============================================================
+    // ========================================================
 
     for (final trade in trades) {
       final double profit =
-          double.tryParse(trade.profit.replaceAll("+", "")) ?? 0;
+          double.tryParse(
+                trade.profit.replaceAll("+", ""),
+              ) ??
+              0;
 
       timeline.add(
         AccountTimelineModel(
-          // gunakan waktu close trade
           date: trade.closeDateTime ?? DateTime.now(),
-
           type: "Trade",
-
           amount: profit,
 
-          // sementara belum dihitung
+          // akan dihitung nanti
           balance: 0,
 
-          // nomor ticket
           reference: trade.ticket,
+
+          // khusus trade
+          pair: trade.pair,
+          tradeType: trade.type,
         ),
       );
     }
 
-    // ============================================================
+    // ========================================================
     // SORT TIMELINE
-    //
-    // Urutkan semua event berdasarkan tanggal
-    // dari yang paling lama ke yang paling baru.
-    // ============================================================
+    // ========================================================
 
-    timeline.sort((a, b) => a.date.compareTo(b.date));
+    timeline.sort(
+      (a, b) => a.date.compareTo(b.date),
+    );
 
-    print("========== TIMELINE ==========");
-
-    for (final item in timeline) {
-      print("${item.date} | ${item.type} | ${item.amount}");
-    }
-
-    print("==============================");
-
-    // ==========================================
-    // HITUNG RUNNING BALANCE
-    // ==========================================
+    // ========================================================
+    // HITUNG BALANCE
+    // ========================================================
 
     calculateBalance(timeline);
 
-    // ============================================================
-    // RETURN
-    // ============================================================
+    // ========================================================
+    // DEBUG
+    // ========================================================
+
+    print("");
+    print("========== TIMELINE ==========");
+
+    for (final item in timeline) {
+      print(
+        "${item.date} | "
+        "${item.type} | "
+        "${item.amount} | "
+        "Balance=${item.balance.toStringAsFixed(2)} | "
+        "${item.reference}",
+      );
+    }
+
+    print("==============================");
+    print("");
 
     return timeline;
   }
-  // ============================================================
+
+  // ==========================================================
   // CALCULATE RUNNING BALANCE
   //
-  // Timeline HARUS sudah di-sort sebelum masuk ke method ini.
+  // Timeline HARUS sudah di-sort.
   //
   // Deposit  -> +
   // Withdraw -> -
-  // Trade    -> Profit / Loss
-  // ============================================================
-
-  static List<AccountTimelineModel> calculateBalance(
+  // Trade    -> Profit/Loss
+  // ==========================================================
+  static void calculateBalance(
     List<AccountTimelineModel> timeline,
   ) {
     double balance = 0;
@@ -130,10 +135,7 @@ class AccountTimelineService {
           break;
       }
 
-      // simpan saldo setelah transaksi
       item.balance = balance;
     }
-
-    return timeline;
   }
 }
