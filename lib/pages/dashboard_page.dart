@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 
-import '../models/statistic_model.dart';
-import '../models/pair_statistic_model.dart';
+import '../models/analytics_result_model.dart';
 
 import '../services/hive_service.dart';
-import '../services/statistic_service.dart';
-import '../models/account_summary_model.dart';
-import '../services/account_statistic_service.dart';
-import '../models/account_health_model.dart';
-import '../services/account_health_service.dart';
+import '../services/account_timeline_service.dart';
+import '../services/analytics_engine.dart';
+
+import '../widgets/dashboard/balance_card.dart';
+import '../widgets/dashboard/health_card.dart';
+import '../widgets/dashboard/statistic_grid.dart';
+import '../widgets/dashboard/pair_performance_card.dart';
+
+import '../shared/loading_widget.dart';
+
+import 'home_page.dart';
 import 'history_page.dart';
 import 'account_transaction_page.dart';
-import 'home_page.dart';
-import '../services/account_timeline_service.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -22,76 +25,42 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  StatisticModel? stats;
-
-  AccountHealthModel? health;
-
-  AccountSummaryModel? accountSummary;
-
-  List<PairStatisticModel> pairStats = [];
+  AnalyticsResultModel? analytics;
 
   @override
   void initState() {
     super.initState();
-    loadStatistic();
+    loadDashboard();
   }
 
-  Future<void> loadStatistic() async {
+  Future<void> loadDashboard() async {
     final trades = await HiveService.getTrades();
 
     final transactions = await HiveService.getAccountTransactions();
-
-    // ==========================================
-    // TIMELINE DEBUG
-    // ==========================================
 
     final timeline = AccountTimelineService.generate(
       transactions: transactions,
       trades: trades,
     );
 
-    print("");
-    print("========== TIMELINE ==========");
+    analytics = AnalyticsEngine.calculate(timeline);
 
-    for (final item in timeline) {
-      print(
-        "${item.date} | "
-        "${item.type} | "
-        "${item.amount} | "
-        "Balance=${item.balance.toStringAsFixed(2)} | "
-        "${item.reference}",
-      );
-    }
-
-    print("==============================");
-    print("");
-
-    // ==========================================
-    // DASHBOARD
-    // ==========================================
-
-    stats = StatisticService.calculate(trades);
-
-    pairStats = StatisticService.calculatePairPerformance(trades);
-
-    accountSummary = AccountStatisticService.calculate(transactions, trades);
-
-    health = AccountHealthService.calculate(accountSummary!);
+    if (!mounted) return;
 
     setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    if (stats == null || accountSummary == null || health == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (analytics == null) {
+      return const LoadingWidget();
     }
 
     return Scaffold(
       appBar: AppBar(
         title: const Text("Dashboard"),
+
         actions: [
-          // DASHBOARD
           IconButton(
             icon: const Icon(Icons.scanner),
             onPressed: () {
@@ -102,7 +71,6 @@ class _DashboardPageState extends State<DashboardPage> {
             },
           ),
 
-          // HISTORY
           IconButton(
             icon: const Icon(Icons.history),
             onPressed: () {
@@ -113,7 +81,6 @@ class _DashboardPageState extends State<DashboardPage> {
             },
           ),
 
-          // deposit page
           IconButton(
             icon: const Icon(Icons.account_balance_wallet),
             onPressed: () {
@@ -128,170 +95,37 @@ class _DashboardPageState extends State<DashboardPage> {
         ],
       ),
 
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(15),
-        child: Column(
-          children: [
-            // ==========================
-            // NET PROFIT
-            // ==========================
-            Card(
-              elevation: 5,
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    const Text(
-                      "BALANCE",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+      body: RefreshIndicator(
+        onRefresh: loadDashboard,
 
-                    const SizedBox(height: 10),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
 
-                    Text(
-                      accountSummary!.balance.toStringAsFixed(2),
-                      style: const TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+          padding: const EdgeInsets.all(15),
 
-                    const SizedBox(height: 10),
+          child: Column(
+            children: [
+              BalanceCard(
+                balance: analytics!.currentBalance,
 
-                    Text("Net Profit : ${stats!.netProfit.toStringAsFixed(2)}"),
-                  ],
-                ),
+                netProfit: analytics!.netProfit,
               ),
-            ),
 
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(15),
-                child: Column(
-                  children: [
-                    const Text(
-                      "ACCOUNT HEALTH",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+              const SizedBox(height: 15),
 
-                    const SizedBox(height: 15),
+              HealthCard(growth: 0, drawdown: 0, status: "Coming Soon"),
 
-                    Text("Growth : ${health!.growth.toStringAsFixed(2)}%"),
+              const SizedBox(height: 15),
 
-                    Text("Drawdown : ${health!.drawdown.toStringAsFixed(2)}%"),
+              StatisticGrid(analytics: analytics!),
 
-                    const SizedBox(height: 10),
+              const SizedBox(height: 15),
 
-                    Text(
-                      health!.status,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+              PairPerformanceCard(analytics: analytics!),
 
-            // ==========================
-            // STATISTIC GRID
-            // ==========================
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-              childAspectRatio: 1.5,
-              children: [
-                statCard("Total Trade", stats!.totalTrade.toString()),
-
-                statCard("Win Rate", "${stats!.winRate.toStringAsFixed(2)}%"),
-
-                statCard("Total Win", stats!.totalWin.toString()),
-
-                statCard("Total Loss", stats!.totalLoss.toString()),
-
-                statCard("Gross Profit", stats!.grossProfit.toStringAsFixed(2)),
-
-                statCard("Gross Loss", stats!.grossLoss.toStringAsFixed(2)),
-
-                statCard(
-                  "Deposit",
-                  accountSummary!.totalDeposit.toStringAsFixed(2),
-                ),
-
-                statCard(
-                  "Withdraw",
-                  accountSummary!.totalWithdraw.toStringAsFixed(2),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-
-            // ==========================
-            // PAIR PERFORMANCE
-            // ==========================
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(15),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Pair Performance",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    if (pairStats.isEmpty) const Text("Belum ada data"),
-
-                    ...pairStats.map(
-                      (pair) => ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(pair.pair),
-                        subtitle: Text("Trade : ${pair.totalTrade}"),
-                        trailing: Text(pair.profit.toStringAsFixed(2)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget statCard(String title, String value) {
-    return Card(
-      elevation: 3,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(title, textAlign: TextAlign.center),
-
-            const SizedBox(height: 8),
-
-            Text(
-              value,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-          ],
+              const SizedBox(height: 30),
+            ],
+          ),
         ),
       ),
     );
