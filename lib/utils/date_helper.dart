@@ -98,13 +98,9 @@ class DateHelper {
   // 02/08/2026 17:08:15
   // ==========================================================
 
-  static String format(DateTime date) {
-    String two(int value) => value.toString().padLeft(2, "0");
-
-    return "${two(date.day)}/${two(date.month)}/${date.year} "
-        "${two(date.hour)}:${two(date.minute)}:${two(date.second)}";
-  }
-
+  static String formatStorage(DateTime date) {
+  return date.toIso8601String();
+}
   // ==========================================================
   // FORMAT DATE ONLY
   //
@@ -112,12 +108,11 @@ class DateHelper {
   // 02/08/2026
   // ==========================================================
 
-  static String formatDate(DateTime date) {
-    String two(int value) => value.toString().padLeft(2, "0");
+ static String formatDisplay(DateTime date) {
+  String two(int value) => value.toString().padLeft(2, "0");
 
-    return "${two(date.day)}/${two(date.month)}/${date.year}";
-  }
-
+  return "${two(date.day)}/${two(date.month)}/${date.year}";
+}
   // ==========================================================
   // FORMAT TIME ONLY
   //

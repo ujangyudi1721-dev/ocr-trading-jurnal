@@ -16,6 +16,7 @@ import '../shared/loading_widget.dart';
 import 'home_page.dart';
 import 'history_page.dart';
 import 'account_transaction_page.dart';
+import '../widgets/dashboard/equity_chart.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -180,6 +181,10 @@ class _DashboardPageState extends State<DashboardPage> {
               const SizedBox(height: 15),
 
               StatisticGrid(analytics: analytics!),
+
+              const SizedBox(height: 15),
+
+              EquityChart(analytics: analytics!),
 
               const SizedBox(height: 15),
 

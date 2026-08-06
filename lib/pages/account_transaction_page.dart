@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/account_transaction_model.dart';
 import '../services/hive_service.dart';
 import 'account_history_page.dart';
+import '../utils/date_helper.dart';
 
 class AccountTransactionPage extends StatefulWidget {
   const AccountTransactionPage({super.key});
@@ -16,13 +17,15 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
 
   String type = "Deposit";
 
+  DateTime selectedDate = DateTime.now();
+
   Future<void> saveData() async {
     final amount = double.tryParse(amountController.text) ?? 0;
 
     if (amount <= 0) return;
 
     final tx = AccountTransactionModel(
-      date: DateTime.now().toString(),
+      date: DateHelper.formatStorage(selectedDate),
       type: type,
       amount: amount,
     );
@@ -76,6 +79,33 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
                   type = value!;
                 });
               },
+            ),
+
+            const SizedBox(height: 20),
+
+            const SizedBox(height: 20),
+
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.calendar_today),
+                title: const Text("Tanggal"),
+                subtitle: Text(DateHelper.formatDisplay(selectedDate)),
+                trailing: const Icon(Icons.edit),
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: selectedDate,
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime.now(),
+                  );
+
+                  if (picked != null) {
+                    setState(() {
+                      selectedDate = picked;
+                    });
+                  }
+                },
+              ),
             ),
 
             const SizedBox(height: 20),
