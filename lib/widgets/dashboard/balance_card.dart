@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class BalanceCard extends StatelessWidget {
   final double balance;
   final double netProfit;
+  final VoidCallback? onTap;
 
   const BalanceCard({
     super.key,
     required this.balance,
     required this.netProfit,
+    this.onTap,
   });
 
   @override
@@ -19,16 +21,33 @@ class BalanceCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
       ),
-      child: Padding(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            const Text(
-              "BALANCE",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  "BALANCE",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                if (onTap != null) ...[
+                  const SizedBox(width: 6),
+                  const Icon(
+                    Icons.chevron_right,
+                    size: 20,
+                    color: Colors.grey,
+                  ),
+                ],
+              ],
             ),
 
             const SizedBox(height: 12),
@@ -68,6 +87,7 @@ class BalanceCard extends StatelessWidget {
               ],
             ),
           ],
+          ),
         ),
       ),
     );

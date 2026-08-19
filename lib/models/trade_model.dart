@@ -38,6 +38,10 @@ class TradeModel extends HiveObject {
   @HiveField(10)
   String closePrice;
 
+  // Tag emosi saat trade ini diambil (opsional, dipilih user saat simpan)
+  @HiveField(11)
+  String? emotion;
+
   TradeModel({
     required this.ticket,
     required this.pair,
@@ -50,6 +54,7 @@ class TradeModel extends HiveObject {
     required this.tp,
     required this.openPrice,
     required this.closePrice,
+    this.emotion,
   });
   DateTime? get openDateTime {
     return DateHelper.parse(openTime);

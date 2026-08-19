@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/account_transaction_model.dart';
 import '../services/hive_service.dart';
+import 'account_transaction_page.dart';
 
 class AccountHistoryPage extends StatefulWidget {
   const AccountHistoryPage({super.key});
@@ -26,6 +27,32 @@ class _AccountHistoryPageState extends State<AccountHistoryPage> {
     setState(() {});
   }
 
+  Future<void> deleteItem(AccountTransactionModel item) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Hapus Data"),
+        content: const Text("Yakin ingin menghapus transaksi ini?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Batal"),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Hapus"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    await HiveService.deleteAccountTransaction(item);
+
+    await loadData();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,7 +70,32 @@ class _AccountHistoryPageState extends State<AccountHistoryPage> {
             ),
             title: Text(item.type),
             subtitle: Text(item.date),
-            trailing: Text(item.amount.toString()),
+            onTap: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AccountTransactionPage(transaction: item),
+                ),
+              );
+
+              if (result == true) {
+                loadData();
+              }
+            },
+
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(item.amount.toString()),
+
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () {
+                    deleteItem(item);
+                  },
+                ),
+              ],
+            ),
           );
         },
       ),

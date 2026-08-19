@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/trade_model.dart';
+import '../constants/emotion_constants.dart';
 
 class TradeDetailPage extends StatelessWidget {
   final TradeModel trade;
@@ -24,6 +25,8 @@ class TradeDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final emotion = EmotionConstants.find(trade.emotion);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Detail Trade"),
@@ -36,6 +39,15 @@ class TradeDetailPage extends StatelessWidget {
             buildItem("Type", trade.type),
             buildItem("Lot", trade.lot),
             buildItem("Profit", trade.profit),
+
+            if (emotion != null)
+              Card(
+                child: ListTile(
+                  leading: Icon(emotion.icon, color: emotion.color),
+                  title: const Text("Emosi saat entry"),
+                  subtitle: Text(emotion.label),
+                ),
+              ),
 
             buildItem("Open Time", trade.openTime),
             buildItem("Close Time", trade.closeTime),

@@ -68,8 +68,8 @@ class DateHelper {
 
       final year = int.parse(parts[2]);
 
-      final time = parts[3].split(".");
-
+      final normalizedTime = parts[3].replaceAll(",", ".");
+      final time = normalizedTime.split(".");
       if (time.length != 3) {
         return null;
       }
@@ -78,14 +78,7 @@ class DateHelper {
       final minute = int.parse(time[1]);
       final second = int.parse(time[2]);
 
-      return DateTime(
-        year,
-        month,
-        day,
-        hour,
-        minute,
-        second,
-      );
+      return DateTime(year, month, day, hour, minute, second);
     } catch (_) {
       return null;
     }
@@ -99,8 +92,8 @@ class DateHelper {
   // ==========================================================
 
   static String formatStorage(DateTime date) {
-  return date.toIso8601String();
-}
+    return date.toIso8601String();
+  }
   // ==========================================================
   // FORMAT DATE ONLY
   //
@@ -108,11 +101,11 @@ class DateHelper {
   // 02/08/2026
   // ==========================================================
 
- static String formatDisplay(DateTime date) {
-  String two(int value) => value.toString().padLeft(2, "0");
+  static String formatDisplay(DateTime date) {
+    String two(int value) => value.toString().padLeft(2, "0");
 
-  return "${two(date.day)}/${two(date.month)}/${date.year}";
-}
+    return "${two(date.day)}/${two(date.month)}/${date.year}";
+  }
   // ==========================================================
   // FORMAT TIME ONLY
   //
@@ -124,5 +117,15 @@ class DateHelper {
     String two(int value) => value.toString().padLeft(2, "0");
 
     return "${two(date.hour)}:${two(date.minute)}:${two(date.second)}";
+  }
+
+  // ==========================================================
+  // FORMAT DATE + TIME
+  //
+  // Output:
+  // 02/08/2026 17:08:15
+  // ==========================================================
+  static String formatDateTime(DateTime date) {
+    return "${formatDisplay(date)} ${formatTime(date)}";
   }
 }

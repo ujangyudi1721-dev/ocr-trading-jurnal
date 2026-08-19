@@ -2,11 +2,27 @@ import 'package:flutter/material.dart';
 
 import '../../models/analytics_result_model.dart';
 import '../../shared/stat_card.dart';
+import '../../pages/history_page.dart';
+import '../../pages/account_transaction_page.dart';
 
 class StatisticGrid extends StatelessWidget {
   final AnalyticsResultModel analytics;
 
   const StatisticGrid({super.key, required this.analytics});
+
+  void _openHistory(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const HistoryPage()),
+    );
+  }
+
+  void _openAccountTransaction(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AccountTransactionPage()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +43,7 @@ class StatisticGrid extends StatelessWidget {
           title: "Total Trade",
           value: analytics.totalTrade.toString(),
           icon: Icons.swap_horiz,
+          onTap: () => _openHistory(context),
         ),
 
         StatCard(
@@ -39,12 +56,14 @@ class StatisticGrid extends StatelessWidget {
           title: "Total Win",
           value: analytics.totalWin.toString(),
           icon: Icons.trending_up,
+          onTap: () => _openHistory(context),
         ),
 
         StatCard(
           title: "Total Loss",
           value: analytics.totalLoss.toString(),
           icon: Icons.trending_down,
+          onTap: () => _openHistory(context),
         ),
 
         StatCard(
@@ -63,12 +82,14 @@ class StatisticGrid extends StatelessWidget {
           title: "Deposit",
           value: analytics.totalDeposit.toStringAsFixed(2),
           icon: Icons.account_balance_wallet,
+          onTap: () => _openAccountTransaction(context),
         ),
 
         StatCard(
           title: "Withdraw",
           value: analytics.totalWithdraw.toStringAsFixed(2),
           icon: Icons.payments,
+          onTap: () => _openAccountTransaction(context),
         ),
       ],
     );

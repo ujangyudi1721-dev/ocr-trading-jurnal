@@ -44,6 +44,46 @@ class EquityChart extends StatelessWidget {
 
                     titlesData: FlTitlesData(show: true),
 
+                    lineTouchData: LineTouchData(
+                      enabled: true,
+
+                      touchTooltipData: LineTouchTooltipData(
+                        getTooltipItems: (touchedSpots) {
+                          return touchedSpots.map((spot) {
+                            return LineTooltipItem(
+                              spot.y.toStringAsFixed(2),
+                              const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            );
+                          }).toList();
+                        },
+                      ),
+
+                      getTouchedSpotIndicator: (barData, spotIndexes) {
+                        return spotIndexes.map((index) {
+                          return TouchedSpotIndicatorData(
+                            FlLine(
+                              color: Colors.green,
+                              strokeWidth: 2,
+                              dashArray: [4, 4],
+                            ),
+                            FlDotData(
+                              show: true,
+                              getDotPainter: (spot, percent, bar, index) =>
+                                  FlDotCirclePainter(
+                                radius: 5,
+                                color: Colors.green,
+                                strokeWidth: 2,
+                                strokeColor: Colors.white,
+                              ),
+                            ),
+                          );
+                        }).toList();
+                      },
+                    ),
+
                     lineBarsData: [
                       LineChartBarData(
                         spots: spots,

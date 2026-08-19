@@ -1,7 +1,9 @@
 import 'equity_point_model.dart';
 import 'pair_statistic_model.dart';
+import 'emotion_statistic_model.dart';
 import 'drawdown_model.dart';
 import 'account_timeline_model.dart';
+import 'risk_limit_model.dart';
 
 class AnalyticsResultModel {
   // =============================
@@ -33,6 +35,7 @@ class AnalyticsResultModel {
   /// Saldo terakhir setelah seluruh transaksi diproses
   final double currentBalance;
 
+  final double growth;
   // ================================
   // TIMELINE
   // ================================
@@ -51,11 +54,23 @@ class AnalyticsResultModel {
 
   final List<PairStatisticModel> pairPerformance;
 
+  // =================================
+  // EMOTION PERFORMANCE
+  // =================================
+
+  final List<EmotionStatisticModel> emotionPerformance;
+
   // ==================================
   // DRAWDOWN
   // ==================================
 
   final DrawdownModel drawdown;
+
+  // ==================================
+  // RISK LIMIT
+  // ==================================
+
+  final RiskLimitModel riskLimit;
 
   AnalyticsResultModel({
     required this.totalTrade,
@@ -73,6 +88,7 @@ class AnalyticsResultModel {
     required this.totalDeposit,
     required this.totalWithdraw,
     required this.currentBalance,
+    required this.growth,
 
     // TIMELINE
     required this.timeline,
@@ -83,7 +99,13 @@ class AnalyticsResultModel {
     // PAIR
     required this.pairPerformance,
 
+    // EMOTION
+    required this.emotionPerformance,
+
     // DRAWDOWN
     required this.drawdown,
+
+    // RISK LIMIT
+    required this.riskLimit,
   });
 }

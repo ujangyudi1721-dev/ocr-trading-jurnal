@@ -1,8 +1,12 @@
 import '../models/account_timeline_model.dart';
 import '../models/analytics_result_model.dart';
-import '../models/drawdown_model.dart';
 import '../models/equity_point_model.dart';
 import '../models/pair_statistic_model.dart';
+import '../models/emotion_statistic_model.dart';
+
+import 'drawdown_service.dart';
+import '../models/risk_limit_model.dart';
+import 'risk_limit_service.dart';
 
 class AnalyticsEngine {
   // ==========================================================
@@ -11,7 +15,12 @@ class AnalyticsEngine {
   // Single Source of Truth:
   // Semua statistik dihitung dari Timeline.
   // ==========================================================
-  static AnalyticsResultModel calculate(List<AccountTimelineModel> timeline) {
+
+  static AnalyticsResultModel calculate(
+    List<AccountTimelineModel> timeline, {
+    double maxLossPercent = 2,
+    double profitTargetPercent = 3,
+  }) {
     // ========================================================
     // TRADE STATISTIC
     // ========================================================
@@ -36,9 +45,7 @@ class AnalyticsEngine {
     // LOOP TIMELINE
     // ========================================================
 
-    for (int i = 0; i < timeline.length; i++) {
-      final item = timeline[i];
-
+    for (final item in timeline) {
       switch (item.type) {
         case "Deposit":
           totalDeposit += item.amount;
@@ -62,14 +69,48 @@ class AnalyticsEngine {
           break;
       }
 
-      // ====================================================
+      // ======================================================
       // CURRENT BALANCE
-      // ====================================================
+      // ======================================================
 
       currentBalance = item.balance;
     }
 
+    //=============================
+    // GROWTH
+    //=============================
+
+    double netDeposit = totalDeposit - totalWithdraw;
+
+    double growth = 0.0;
+
+    if (netDeposit > 0) {
+      growth = ((currentBalance - netDeposit) / netDeposit) * 100;
+    }
+    print("Growth : $growth");
+
     // ========================================================
+    // RISK LIMIT
+    // ========================================================
+
+    final riskLimit = RiskLimitService.calculate(
+      balance: currentBalance,
+      maxLossPercent: maxLossPercent,
+      profitTargetPercent: profitTargetPercent,
+    );
+
+    print("");
+    print("========== RISK LIMIT ==========");
+    print("Balance               : ${riskLimit.balance}");
+    print("Max Loss %            : ${riskLimit.maxLossPercent}");
+    print("Max Loss Amount       : ${riskLimit.maxLossAmount}");
+    print("Loss Limit Balance    : ${riskLimit.lossLimitBalance}");
+    print("Profit Target %       : ${riskLimit.profitTargetPercent}");
+    print("Profit Target Amount  : ${riskLimit.profitTargetAmount}");
+    print("Profit Target Balance : ${riskLimit.profitTargetBalance}");
+    print(
+      "================================",
+    ); // ========================================================
     // FINAL CALCULATION
     // ========================================================
 
@@ -83,11 +124,33 @@ class AnalyticsEngine {
 
     final double profitFactor = grossLoss == 0 ? 0 : grossProfit / grossLoss;
 
-    final drawdown = calculateDrawdown(timeline);
+    // ========================================================
+    // DRAWDOWN
+    //
+    // Gunakan DrawdownService.
+    // Jangan hitung drawdown di sini lagi.
+    // ========================================================
+
+    final drawdown = DrawdownService.calculate(timeline);
+
+    // ========================================================
+    // EQUITY
+    // ========================================================
 
     final equity = calculateEquity(timeline);
 
+    // ========================================================
+    // PAIR PERFORMANCE
+    // ========================================================
+
     final pairPerformance = calculatePairPerformance(timeline);
+
+    // ========================================================
+    // EMOTION PERFORMANCE
+    // ========================================================
+
+    final emotionPerformance = calculateEmotionPerformance(timeline);
+
     // ========================================================
     // RETURN
     // ========================================================
@@ -96,70 +159,42 @@ class AnalyticsEngine {
       totalTrade: totalTrade,
       totalWin: totalWin,
       totalLoss: totalLoss,
+
       grossProfit: grossProfit,
       grossLoss: grossLoss,
+
       netProfit: netProfit,
+
       winRate: winRate,
+
       averageWin: averageWin,
       averageLoss: averageLoss,
+
       profitFactor: profitFactor,
+
       totalDeposit: totalDeposit,
       totalWithdraw: totalWithdraw,
       currentBalance: currentBalance,
+      growth: growth,
+
       timeline: timeline,
+
       equity: equity,
+
       pairPerformance: pairPerformance,
+
+      emotionPerformance: emotionPerformance,
+
       drawdown: drawdown,
-    );
-  }
 
-  // ==========================================================
-  // CALCULATE DRAWDOWN
-  // ==========================================================
-  static DrawdownModel calculateDrawdown(List<AccountTimelineModel> timeline) {
-    double peakBalance = 0;
-
-    double currentBalance = 0;
-
-    double currentDrawdown = 0;
-
-    double maximumDrawdown = 0;
-
-    for (final item in timeline) {
-      currentBalance = item.balance;
-
-      // Peak baru
-      if (currentBalance > peakBalance) {
-        peakBalance = currentBalance;
-      }
-
-      // Hitung drawdown dari peak
-      double drawdown = 0;
-
-      if (peakBalance > 0) {
-        drawdown = ((peakBalance - currentBalance) / peakBalance) * 100;
-      }
-
-      // Simpan drawdown terbesar
-      if (drawdown > maximumDrawdown) {
-        maximumDrawdown = drawdown;
-      }
-
-      // Drawdown terakhir
-      currentDrawdown = drawdown;
-    }
-
-    return DrawdownModel(
-      peakBalance: peakBalance,
-      currentBalance: currentBalance,
-      currentDrawdown: currentDrawdown,
-      maximumDrawdown: maximumDrawdown,
+      riskLimit: riskLimit,
     );
   }
 
   // ==========================================================
   // CALCULATE EQUITY
   // ==========================================================
+
   static List<EquityPointModel> calculateEquity(
     List<AccountTimelineModel> timeline,
   ) {
@@ -175,13 +210,16 @@ class AnalyticsEngine {
   // ==========================================================
   // CALCULATE PAIR PERFORMANCE
   // ==========================================================
+
   static List<PairStatisticModel> calculatePairPerformance(
     List<AccountTimelineModel> timeline,
   ) {
     final Map<String, PairStatisticModel> pairMap = {};
 
     for (final item in timeline) {
-      if (item.type != "Trade") continue;
+      if (item.type != "Trade") {
+        continue;
+      }
 
       final pair = item.pair ?? "UNKNOWN";
 
@@ -190,19 +228,77 @@ class AnalyticsEngine {
           pair: pair,
           totalTrade: 0,
           profit: 0,
+          totalWin: 0,
+          totalLoss: 0,
         );
       }
 
       final old = pairMap[pair]!;
 
+      final bool isWin = item.amount >= 0;
+
       pairMap[pair] = PairStatisticModel(
         pair: old.pair,
         totalTrade: old.totalTrade + 1,
         profit: old.profit + item.amount,
+        totalWin: old.totalWin + (isWin ? 1 : 0),
+        totalLoss: old.totalLoss + (isWin ? 0 : 1),
       );
     }
 
     final result = pairMap.values.toList();
+
+    result.sort((a, b) => b.profit.compareTo(a.profit));
+
+    return result;
+  }
+
+  // ==========================================================
+  // CALCULATE EMOTION PERFORMANCE
+  //
+  // Hanya trade yang punya tag emosi yang dihitung.
+  // ==========================================================
+
+  static List<EmotionStatisticModel> calculateEmotionPerformance(
+    List<AccountTimelineModel> timeline,
+  ) {
+    final Map<String, EmotionStatisticModel> emotionMap = {};
+
+    for (final item in timeline) {
+      if (item.type != "Trade") {
+        continue;
+      }
+
+      final emotion = item.emotion;
+
+      if (emotion == null || emotion.isEmpty) {
+        continue;
+      }
+
+      if (!emotionMap.containsKey(emotion)) {
+        emotionMap[emotion] = EmotionStatisticModel(
+          emotion: emotion,
+          totalTrade: 0,
+          profit: 0,
+          totalWin: 0,
+          totalLoss: 0,
+        );
+      }
+
+      final old = emotionMap[emotion]!;
+
+      final bool isWin = item.amount >= 0;
+
+      emotionMap[emotion] = EmotionStatisticModel(
+        emotion: old.emotion,
+        totalTrade: old.totalTrade + 1,
+        profit: old.profit + item.amount,
+        totalWin: old.totalWin + (isWin ? 1 : 0),
+        totalLoss: old.totalLoss + (isWin ? 0 : 1),
+      );
+    }
+
+    final result = emotionMap.values.toList();
 
     result.sort((a, b) => b.profit.compareTo(a.profit));
 

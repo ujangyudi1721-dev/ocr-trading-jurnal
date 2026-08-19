@@ -1,12 +1,12 @@
-class PairStatisticModel {
-  final String pair;
+class EmotionStatisticModel {
+  final String emotion;
   final int totalTrade;
   final double profit;
   final int totalWin;
   final int totalLoss;
 
-  PairStatisticModel({
-    required this.pair,
+  EmotionStatisticModel({
+    required this.emotion,
     required this.totalTrade,
     required this.profit,
     required this.totalWin,

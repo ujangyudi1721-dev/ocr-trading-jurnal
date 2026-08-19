@@ -11,10 +11,13 @@ class AccountTimelineService {
   // - Withdraw
   // - Trade
   //
-  // Setelah semua event dibuat:
-  // 1. Sort berdasarkan tanggal
-  // 2. Hitung running balance
+  // Urutan:
+  // 1. Ambil semua event
+  // 2. Validasi tanggal
+  // 3. Sort dari tanggal paling lama -> terbaru
+  // 4. Hitung running balance
   // ==========================================================
+
   static List<AccountTimelineModel> generate({
     required List<AccountTransactionModel> transactions,
     required List<TradeModel> trades,
@@ -26,15 +29,25 @@ class AccountTimelineService {
     // ========================================================
 
     for (final transaction in transactions) {
+      final date = transaction.dateTime;
+
+      // Jangan gunakan DateTime.now() sebagai fallback.
+      // Kalau tanggal tidak valid, data dilewati agar tidak
+      // masuk ke timeline pada tanggal yang salah.
+      if (date == null) {
+        print(
+          "WARNING: Invalid transaction date: "
+          "${transaction.date}",
+        );
+        continue;
+      }
+
       timeline.add(
         AccountTimelineModel(
-          date: transaction.dateTime ?? DateTime.now(),
+          date: date,
           type: transaction.type,
           amount: transaction.amount,
-
-          // akan dihitung nanti
           balance: 0,
-
           reference: transaction.type,
         ),
       );
@@ -45,6 +58,17 @@ class AccountTimelineService {
     // ========================================================
 
     for (final trade in trades) {
+      final date = trade.closeDateTime;
+
+      // Jangan gunakan DateTime.now() sebagai fallback.
+      if (date == null) {
+        print(
+          "WARNING: Invalid trade close date: "
+          "${trade.ticket}",
+        );
+        continue;
+      }
+
       final double profit =
           double.tryParse(
                 trade.profit.replaceAll("+", ""),
@@ -53,24 +77,25 @@ class AccountTimelineService {
 
       timeline.add(
         AccountTimelineModel(
-          date: trade.closeDateTime ?? DateTime.now(),
+          date: date,
           type: "Trade",
           amount: profit,
-
-          // akan dihitung nanti
           balance: 0,
-
           reference: trade.ticket,
-
-          // khusus trade
           pair: trade.pair,
           tradeType: trade.type,
+          emotion: trade.emotion,
         ),
       );
     }
 
     // ========================================================
     // SORT TIMELINE
+    //
+    // PENTING:
+    // Timeline internal harus dari LAMA -> BARU.
+    //
+    // Ini diperlukan agar running balance benar.
     // ========================================================
 
     timeline.sort(
@@ -78,7 +103,7 @@ class AccountTimelineService {
     );
 
     // ========================================================
-    // HITUNG BALANCE
+    // HITUNG RUNNING BALANCE
     // ========================================================
 
     calculateBalance(timeline);
@@ -109,12 +134,13 @@ class AccountTimelineService {
   // ==========================================================
   // CALCULATE RUNNING BALANCE
   //
-  // Timeline HARUS sudah di-sort.
+  // Timeline harus sudah di-sort LAMA -> BARU.
   //
   // Deposit  -> +
   // Withdraw -> -
   // Trade    -> Profit/Loss
   // ==========================================================
+
   static void calculateBalance(
     List<AccountTimelineModel> timeline,
   ) {

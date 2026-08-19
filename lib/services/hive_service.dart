@@ -68,10 +68,8 @@ class HiveService {
     return box.values.toList();
   }
 
-  static Future<void> deleteAccountTransaction(int index) async {
-    final box = await openAccountBox();
-
-    await box.deleteAt(index);
+  static Future deleteAccountTransaction(AccountTransactionModel tx) async {
+    await tx.delete();
   }
 
   static Future<void> clearAccountTransactions() async {

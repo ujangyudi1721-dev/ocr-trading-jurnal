@@ -4,7 +4,7 @@ import '../utils/date_helper.dart';
 part 'account_transaction_model.g.dart';
 
 @HiveType(typeId: 1)
-class AccountTransactionModel {
+class AccountTransactionModel extends HiveObject {
   @HiveField(0)
   String date;
 

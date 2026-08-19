@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 
 import '../../models/analytics_result_model.dart';
-import '../../models/pair_statistic_model.dart';
+import '../../models/emotion_statistic_model.dart';
+import '../../constants/emotion_constants.dart';
 
-class PairPerformanceCard extends StatelessWidget {
+class EmotionPerformanceCard extends StatelessWidget {
   final AnalyticsResultModel analytics;
 
-  const PairPerformanceCard({
+  const EmotionPerformanceCard({
     super.key,
     required this.analytics,
   });
 
-  void _showPairDetail(
+  void _showEmotionDetail(
     BuildContext context,
-    PairStatisticModel pair,
+    EmotionStatisticModel stat,
   ) {
     showModalBottomSheet(
       context: context,
@@ -30,7 +31,7 @@ class PairPerformanceCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                pair.pair,
+                stat.emotion,
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -39,24 +40,24 @@ class PairPerformanceCard extends StatelessWidget {
 
               const SizedBox(height: 15),
 
-              _detailRow("Total Trade", "${pair.totalTrade}"),
+              _detailRow("Total Trade", "${stat.totalTrade}"),
 
               _detailRow(
                 "Win / Loss",
-                "${pair.totalWin} / ${pair.totalLoss}"
-                "  (${pair.winRate.toStringAsFixed(0)}%)",
+                "${stat.totalWin} / ${stat.totalLoss}"
+                "  (${stat.winRate.toStringAsFixed(0)}%)",
               ),
 
               _detailRow(
                 "Total Profit",
-                pair.profit.toStringAsFixed(2),
-                color: pair.profit >= 0 ? Colors.green : Colors.red,
+                stat.profit.toStringAsFixed(2),
+                color: stat.profit >= 0 ? Colors.green : Colors.red,
               ),
 
               _detailRow(
                 "Rata-rata / Trade",
-                pair.averageProfit.toStringAsFixed(2),
-                color: pair.averageProfit >= 0 ? Colors.green : Colors.red,
+                stat.averageProfit.toStringAsFixed(2),
+                color: stat.averageProfit >= 0 ? Colors.green : Colors.red,
               ),
 
               const SizedBox(height: 10),
@@ -89,8 +90,7 @@ class PairPerformanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<PairStatisticModel> pairs =
-        analytics.pairPerformance;
+    final List<EmotionStatisticModel> stats = analytics.emotionPerformance;
 
     return Card(
       elevation: 5,
@@ -100,11 +100,10 @@ class PairPerformanceCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(15),
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              "PAIR PERFORMANCE",
+              "PERFORMA vs EMOSI",
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -113,50 +112,49 @@ class PairPerformanceCard extends StatelessWidget {
 
             const SizedBox(height: 15),
 
-            if (pairs.isEmpty)
+            if (stats.isEmpty)
               const Center(
                 child: Padding(
                   padding: EdgeInsets.all(20),
-                  child: Text("Belum ada data"),
+                  child: Text(
+                    "Belum ada trade yang ditandai emosinya",
+                  ),
                 ),
               ),
 
-            ...pairs.map(
-              (pair) => ListTile(
-                contentPadding:
-                    EdgeInsets.zero,
+            ...stats.map((stat) {
+              final option = EmotionConstants.find(stat.emotion);
+
+              return ListTile(
+                contentPadding: EdgeInsets.zero,
 
                 leading: CircleAvatar(
-                  child: Text(
-                    pair.pair.substring(
-                      0,
-                      pair.pair.length > 2
-                          ? 2
-                          : 1,
-                    ),
+                  backgroundColor: option?.color ?? Colors.grey,
+                  child: Icon(
+                    option?.icon ?? Icons.mood,
+                    size: 18,
+                    color: Colors.white,
                   ),
                 ),
 
-                title: Text(pair.pair),
+                title: Text(stat.emotion),
 
                 subtitle: Text(
-                  "Trade : ${pair.totalTrade}",
+                  "Trade : ${stat.totalTrade}  |  "
+                  "Win Rate : ${stat.winRate.toStringAsFixed(0)}%",
                 ),
 
                 trailing: Text(
-                  pair.profit.toStringAsFixed(2),
+                  stat.profit.toStringAsFixed(2),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color:
-                        pair.profit >= 0
-                            ? Colors.green
-                            : Colors.red,
+                    color: stat.profit >= 0 ? Colors.green : Colors.red,
                   ),
                 ),
 
-                onTap: () => _showPairDetail(context, pair),
-              ),
-            ),
+                onTap: () => _showEmotionDetail(context, stat),
+              );
+            }),
           ],
         ),
       ),

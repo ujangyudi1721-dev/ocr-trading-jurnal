@@ -21,6 +21,8 @@ class AccountTimelineModel {
 
   final String? tradeType;
 
+  final String? emotion;
+
   AccountTimelineModel({
     required this.date,
     required this.type,
@@ -29,5 +31,6 @@ class AccountTimelineModel {
     required this.reference,
     this.pair,
     this.tradeType,
+    this.emotion,
   });
 }
