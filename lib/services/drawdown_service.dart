@@ -1,10 +1,15 @@
 import '../models/account_timeline_model.dart';
 import '../models/drawdown_model.dart';
+import '../utils/app_logger.dart';
 
+/// Menghitung [DrawdownModel] (peak balance, drawdown saat ini, dan
+/// drawdown maksimum) dari [AccountTimelineModel] yang sudah punya
+/// saldo berjalan (running balance).
 class DrawdownService {
-  static DrawdownModel calculate(
-    List<AccountTimelineModel> timeline,
-  ) {
+  /// Hitung drawdown dari [timeline]. [timeline] harus sudah terurut
+  /// LAMA -> BARU dan setiap item sudah punya `balance` terisi
+  /// (lihat `AccountTimelineService.calculateBalance`).
+  static DrawdownModel calculate(List<AccountTimelineModel> timeline) {
     // ==========================================
     // TIMELINE KOSONG
     // ==========================================
@@ -27,7 +32,7 @@ class DrawdownService {
     double maximumDrawdown = 0;
 
     // ==========================================
-    // HITUNG DRAWDown
+    // HITUNG DRAWDOWN
     // ==========================================
 
     for (final item in timeline) {
@@ -58,21 +63,20 @@ class DrawdownService {
     // CURRENT DRAWDOWN
     // ==========================================
 
-    final currentDrawdown =
-        peakBalance - currentBalance;
+    final currentDrawdown = peakBalance - currentBalance;
 
     // ==========================================
     // DEBUG
     // ==========================================
 
-    print("");
-    print("========== DRAWDOWN ==========");
-    print("Peak Balance     : $peakBalance");
-    print("Current Balance  : $currentBalance");
-    print("Current Drawdown : $currentDrawdown");
-    print("Maximum Drawdown : $maximumDrawdown");
-    print("==============================");
-    print("");
+    AppLogger.log("");
+    AppLogger.log("========== DRAWDOWN ==========");
+    AppLogger.log("Peak Balance     : $peakBalance");
+    AppLogger.log("Current Balance  : $currentBalance");
+    AppLogger.log("Current Drawdown : $currentDrawdown");
+    AppLogger.log("Maximum Drawdown : $maximumDrawdown");
+    AppLogger.log("==============================");
+    AppLogger.log("");
 
     return DrawdownModel(
       peakBalance: peakBalance,

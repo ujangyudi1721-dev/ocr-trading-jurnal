@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 
+/// Dialog form untuk mengubah persentase batas rugi & target profit
+/// (dibuka dari [RiskLimitCard]). Tidak menyimpan apa pun sendiri —
+/// hanya mem-validasi input lalu mengembalikan hasilnya lewat
+/// `Navigator.pop(context, {...})`; pemanggil (`DashboardPage`) yang
+/// bertanggung jawab menyimpannya lewat `SettingsService`.
 class RiskLimitEditDialog extends StatefulWidget {
   final double maxLossPercent;
   final double profitTargetPercent;
@@ -40,6 +45,8 @@ class _RiskLimitEditDialogState extends State<RiskLimitEditDialog> {
     super.dispose();
   }
 
+  /// Validator field form: wajib diisi dan harus angka > 0.
+  /// Return `null` kalau valid (konvensi validator Flutter `Form`).
   String? validatePercent(String? value) {
     if (value == null || value.trim().isEmpty) {
       return "Wajib diisi";
@@ -54,6 +61,8 @@ class _RiskLimitEditDialogState extends State<RiskLimitEditDialog> {
     return null;
   }
 
+  /// Validasi form lalu tutup dialog sambil mengirim hasilnya
+  /// (`{"maxLoss": ..., "profitTarget": ...}`) ke pemanggil.
   void submit() {
     if (!formKey.currentState!.validate()) return;
 
@@ -108,10 +117,7 @@ class _RiskLimitEditDialogState extends State<RiskLimitEditDialog> {
           child: const Text("Batal"),
         ),
 
-        ElevatedButton(
-          onPressed: submit,
-          child: const Text("Simpan"),
-        ),
+        ElevatedButton(onPressed: submit, child: const Text("Simpan")),
       ],
     );
   }

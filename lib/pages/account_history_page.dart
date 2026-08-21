@@ -4,6 +4,9 @@ import '../models/account_transaction_model.dart';
 import '../services/hive_service.dart';
 import 'account_transaction_page.dart';
 
+/// Daftar transaksi akun manual (Deposit/Withdraw), terbaru di atas.
+/// Tap satu item untuk edit (buka `AccountTransactionPage` mode edit),
+/// atau tombol sampah untuk hapus (dengan dialog konfirmasi).
 class AccountHistoryPage extends StatefulWidget {
   const AccountHistoryPage({super.key});
 
@@ -27,6 +30,7 @@ class _AccountHistoryPageState extends State<AccountHistoryPage> {
     setState(() {});
   }
 
+  /// Minta konfirmasi lewat dialog, lalu hapus [item] kalau user setuju.
   Future<void> deleteItem(AccountTransactionModel item) async {
     final confirm = await showDialog<bool>(
       context: context,

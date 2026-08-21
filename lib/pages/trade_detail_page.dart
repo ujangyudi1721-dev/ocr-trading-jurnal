@@ -3,23 +3,18 @@ import 'package:flutter/material.dart';
 import '../models/trade_model.dart';
 import '../constants/emotion_constants.dart';
 
+/// Halaman detail read-only untuk satu [TradeModel] — dibuka dari
+/// `HistoryPage`, `DailyTradesPage`, dan `AccountHistoryPage` (lewat
+/// timeline). Cuma menampilkan data, tidak ada aksi edit/hapus di sini.
 class TradeDetailPage extends StatelessWidget {
   final TradeModel trade;
 
-  const TradeDetailPage({
-    super.key,
-    required this.trade,
-  });
+  const TradeDetailPage({super.key, required this.trade});
 
-  Widget buildItem(
-    String title,
-    String value,
-  ) {
+  /// Satu baris "judul - nilai" seragam untuk tiap field trade.
+  Widget buildItem(String title, String value) {
     return Card(
-      child: ListTile(
-        title: Text(title),
-        subtitle: Text(value),
-      ),
+      child: ListTile(title: Text(title), subtitle: Text(value)),
     );
   }
 
@@ -28,9 +23,7 @@ class TradeDetailPage extends StatelessWidget {
     final emotion = EmotionConstants.find(trade.emotion);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Detail Trade"),
-      ),
+      appBar: AppBar(title: const Text("Detail Trade")),
       body: SingleChildScrollView(
         child: Column(
           children: [

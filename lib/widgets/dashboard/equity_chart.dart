@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 
 import '../../models/analytics_result_model.dart';
 
+/// Grafik garis (equity curve) yang menunjukkan naik-turunnya saldo
+/// dari waktu ke waktu, dibangun dari [AnalyticsResultModel.equity]
+/// memakai package `fl_chart`.
 class EquityChart extends StatelessWidget {
   final AnalyticsResultModel analytics;
 
@@ -10,6 +13,8 @@ class EquityChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Ubah setiap EquityPointModel jadi titik (x, y) untuk fl_chart:
+    // x = urutan kejadian, y = saldo pada titik itu.
     final spots = analytics.equity
         .map((e) => FlSpot(e.index.toDouble(), e.balance))
         .toList();
@@ -73,11 +78,11 @@ class EquityChart extends StatelessWidget {
                               show: true,
                               getDotPainter: (spot, percent, bar, index) =>
                                   FlDotCirclePainter(
-                                radius: 5,
-                                color: Colors.green,
-                                strokeWidth: 2,
-                                strokeColor: Colors.white,
-                              ),
+                                    radius: 5,
+                                    color: Colors.green,
+                                    strokeWidth: 2,
+                                    strokeColor: Colors.white,
+                                  ),
                             ),
                           );
                         }).toList();

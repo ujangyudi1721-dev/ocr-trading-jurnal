@@ -1,6 +1,9 @@
 import '../models/account_timeline_model.dart';
 import '../models/daily_report_model.dart';
+import '../utils/app_logger.dart';
 
+/// Mengubah [AccountTimelineModel] (kejadian per-item) jadi
+/// [DailyReportModel] (rekap per-hari) untuk halaman `DailyReportPage`.
 class DailyReportService {
   // ==========================================================
   // GENERATE LAPORAN HARIAN
@@ -18,9 +21,7 @@ class DailyReportService {
   // List laporan dari tanggal LAMA -> BARU.
   // ==========================================================
 
-  static List<DailyReportModel> generate(
-    List<AccountTimelineModel> timeline,
-  ) {
+  static List<DailyReportModel> generate(List<AccountTimelineModel> timeline) {
     if (timeline.isEmpty) {
       return [];
     }
@@ -29,8 +30,7 @@ class DailyReportService {
     // SORT (jangan ubah list aslinya)
     // ========================================================
 
-    final sorted = [...timeline]
-      ..sort((a, b) => a.date.compareTo(b.date));
+    final sorted = [...timeline]..sort((a, b) => a.date.compareTo(b.date));
 
     // ========================================================
     // GROUP PER TANGGAL
@@ -42,11 +42,7 @@ class DailyReportService {
     final Map<DateTime, List<AccountTimelineModel>> grouped = {};
 
     for (final item in sorted) {
-      final day = DateTime(
-        item.date.year,
-        item.date.month,
-        item.date.day,
-      );
+      final day = DateTime(item.date.year, item.date.month, item.date.day);
 
       grouped.putIfAbsent(day, () => []).add(item);
     }
@@ -143,11 +139,11 @@ class DailyReportService {
     // DEBUG
     // ========================================================
 
-    print("");
-    print("========== DAILY REPORT ==========");
+    AppLogger.log("");
+    AppLogger.log("========== DAILY REPORT ==========");
 
     for (final report in reports) {
-      print(
+      AppLogger.log(
         "${report.date.day}/${report.date.month}/${report.date.year} | "
         "Open=${report.openingBalance.toStringAsFixed(2)} | "
         "Profit=${report.profit.toStringAsFixed(2)} | "
@@ -157,8 +153,8 @@ class DailyReportService {
       );
     }
 
-    print("==================================");
-    print("");
+    AppLogger.log("==================================");
+    AppLogger.log("");
 
     return reports;
   }

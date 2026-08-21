@@ -1,6 +1,10 @@
 import '../models/risk_limit_model.dart';
 
+/// Menghitung batas risiko harian ([RiskLimitModel]) dari saldo saat
+/// ini dan persentase yang diset user di [SettingsService].
 class RiskLimitService {
+  /// Hitung batas rugi & target profit (nominal + level saldo) dari
+  /// [balance] saat ini dan persentase yang diinginkan user.
   static RiskLimitModel calculate({
     required double balance,
     required double maxLossPercent,
@@ -23,24 +27,5 @@ class RiskLimitService {
       lossLimitBalance: lossLimitBalance,
       profitTargetBalance: profitTargetBalance,
     );
-  }
-
-  static void test() {
-    print("Profit Target Input : 3");
-    final result = calculate(
-      balance: 5000,
-      maxLossPercent: 2,
-      profitTargetPercent: 3,
-    );
-
-    print("========== RISK TEST ==========");
-    print("Balance              : ${result.balance}");
-    print("Max Loss %           : ${result.maxLossPercent}");
-    print("Max Loss Amount      : ${result.maxLossAmount}");
-    print("Loss Limit Balance   : ${result.lossLimitBalance}");
-    print("Profit Target %      : ${result.profitTargetPercent}");
-    print("Profit Target Amount : ${result.profitTargetAmount}");
-    print("Profit Target Balance: ${result.profitTargetBalance}");
-    print("===============================");
   }
 }

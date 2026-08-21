@@ -5,17 +5,23 @@ import '../models/pair_statistic_model.dart';
 import '../models/emotion_statistic_model.dart';
 
 import 'drawdown_service.dart';
-import '../models/risk_limit_model.dart';
+import '../utils/app_logger.dart';
 import 'risk_limit_service.dart';
 
+/// Otak dari halaman Dashboard: mengubah [AccountTimelineModel] mentah
+/// jadi satu [AnalyticsResultModel] siap pakai (statistik trade, growth,
+/// drawdown, equity curve, performa per pair, performa per emosi, dan
+/// risk limit).
+///
+/// Prinsip "Single Source of Truth": semua angka di Dashboard diturunkan
+/// dari [AccountTimelineModel] yang sama lewat [calculate] — tidak ada
+/// perhitungan statistik lain yang dilakukan di halaman/widget langsung.
 class AnalyticsEngine {
-  // ==========================================================
-  // ANALYTICS ENGINE
-  //
-  // Single Source of Truth:
-  // Semua statistik dihitung dari Timeline.
-  // ==========================================================
-
+  /// Hitung seluruh statistik dashboard dari [timeline].
+  ///
+  /// [maxLossPercent] dan [profitTargetPercent] dipakai untuk menghitung
+  /// [RiskLimitModel] — datang dari preferensi user di [SettingsService],
+  /// bukan dihitung di sini.
   static AnalyticsResultModel calculate(
     List<AccountTimelineModel> timeline, {
     double maxLossPercent = 2,
@@ -87,7 +93,7 @@ class AnalyticsEngine {
     if (netDeposit > 0) {
       growth = ((currentBalance - netDeposit) / netDeposit) * 100;
     }
-    print("Growth : $growth");
+    AppLogger.log("Growth : $growth");
 
     // ========================================================
     // RISK LIMIT
@@ -99,18 +105,18 @@ class AnalyticsEngine {
       profitTargetPercent: profitTargetPercent,
     );
 
-    print("");
-    print("========== RISK LIMIT ==========");
-    print("Balance               : ${riskLimit.balance}");
-    print("Max Loss %            : ${riskLimit.maxLossPercent}");
-    print("Max Loss Amount       : ${riskLimit.maxLossAmount}");
-    print("Loss Limit Balance    : ${riskLimit.lossLimitBalance}");
-    print("Profit Target %       : ${riskLimit.profitTargetPercent}");
-    print("Profit Target Amount  : ${riskLimit.profitTargetAmount}");
-    print("Profit Target Balance : ${riskLimit.profitTargetBalance}");
-    print(
-      "================================",
-    ); // ========================================================
+    AppLogger.log("");
+    AppLogger.log("========== RISK LIMIT ==========");
+    AppLogger.log("Balance               : ${riskLimit.balance}");
+    AppLogger.log("Max Loss %            : ${riskLimit.maxLossPercent}");
+    AppLogger.log("Max Loss Amount       : ${riskLimit.maxLossAmount}");
+    AppLogger.log("Loss Limit Balance    : ${riskLimit.lossLimitBalance}");
+    AppLogger.log("Profit Target %       : ${riskLimit.profitTargetPercent}");
+    AppLogger.log("Profit Target Amount  : ${riskLimit.profitTargetAmount}");
+    AppLogger.log("Profit Target Balance : ${riskLimit.profitTargetBalance}");
+    AppLogger.log("================================");
+
+    // ========================================================
     // FINAL CALCULATION
     // ========================================================
 
@@ -195,6 +201,9 @@ class AnalyticsEngine {
   // CALCULATE EQUITY
   // ==========================================================
 
+  /// Ubah [timeline] jadi titik-titik untuk grafik equity/balance.
+  /// [EquityPointModel.index] adalah urutan kejadian (1, 2, 3, ...),
+  /// bukan tanggal, supaya jarak antar titik di grafik selalu rata.
   static List<EquityPointModel> calculateEquity(
     List<AccountTimelineModel> timeline,
   ) {
@@ -211,6 +220,8 @@ class AnalyticsEngine {
   // CALCULATE PAIR PERFORMANCE
   // ==========================================================
 
+  /// Kelompokkan trade di [timeline] berdasarkan pair, lalu urutkan
+  /// dari yang paling profit ke yang paling rugi.
   static List<PairStatisticModel> calculatePairPerformance(
     List<AccountTimelineModel> timeline,
   ) {
@@ -259,6 +270,9 @@ class AnalyticsEngine {
   // Hanya trade yang punya tag emosi yang dihitung.
   // ==========================================================
 
+  /// Kelompokkan trade di [timeline] berdasarkan tag emosi, lalu
+  /// urutkan dari yang paling profit ke yang paling rugi. Trade tanpa
+  /// tag emosi dilewati (tidak ikut dihitung sama sekali).
   static List<EmotionStatisticModel> calculateEmotionPerformance(
     List<AccountTimelineModel> timeline,
   ) {

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+/// Tiga tombol aksi utama di `HomePage` untuk alur input trade:
+/// pilih screenshot, scan OCR, lalu simpan.
 class ActionButtons extends StatelessWidget {
   final VoidCallback onPickImage;
   final VoidCallback onScanOCR;

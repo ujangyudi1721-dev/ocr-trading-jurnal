@@ -3,24 +3,21 @@ import 'package:flutter/material.dart';
 import '../../models/analytics_result_model.dart';
 import '../../models/pair_statistic_model.dart';
 
+/// Kartu Dashboard yang menampilkan daftar [PairStatisticModel] —
+/// performa trading dikelompokkan per pair — mirror dari
+/// [EmotionPerformanceCard] tapi grouping-nya per pair, bukan emosi.
+/// Tap satu baris untuk buka detail lengkapnya lewat [_showPairDetail].
 class PairPerformanceCard extends StatelessWidget {
   final AnalyticsResultModel analytics;
 
-  const PairPerformanceCard({
-    super.key,
-    required this.analytics,
-  });
+  const PairPerformanceCard({super.key, required this.analytics});
 
-  void _showPairDetail(
-    BuildContext context,
-    PairStatisticModel pair,
-  ) {
+  /// Tampilkan detail satu pair dalam bottom sheet.
+  void _showPairDetail(BuildContext context, PairStatisticModel pair) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(20),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
         return Padding(
@@ -44,7 +41,7 @@ class PairPerformanceCard extends StatelessWidget {
               _detailRow(
                 "Win / Loss",
                 "${pair.totalWin} / ${pair.totalLoss}"
-                "  (${pair.winRate.toStringAsFixed(0)}%)",
+                    "  (${pair.winRate.toStringAsFixed(0)}%)",
               ),
 
               _detailRow(
@@ -67,6 +64,7 @@ class PairPerformanceCard extends StatelessWidget {
     );
   }
 
+  /// Satu baris "label - value" di dalam bottom sheet detail.
   Widget _detailRow(String label, String value, {Color? color}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -77,10 +75,7 @@ class PairPerformanceCard extends StatelessWidget {
 
           Text(
             value,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
+            style: TextStyle(fontWeight: FontWeight.bold, color: color),
           ),
         ],
       ),
@@ -89,26 +84,19 @@ class PairPerformanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<PairStatisticModel> pairs =
-        analytics.pairPerformance;
+    final List<PairStatisticModel> pairs = analytics.pairPerformance;
 
     return Card(
       elevation: 5,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Padding(
         padding: const EdgeInsets.all(15),
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
               "PAIR PERFORMANCE",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 15),
@@ -123,34 +111,23 @@ class PairPerformanceCard extends StatelessWidget {
 
             ...pairs.map(
               (pair) => ListTile(
-                contentPadding:
-                    EdgeInsets.zero,
+                contentPadding: EdgeInsets.zero,
 
                 leading: CircleAvatar(
                   child: Text(
-                    pair.pair.substring(
-                      0,
-                      pair.pair.length > 2
-                          ? 2
-                          : 1,
-                    ),
+                    pair.pair.substring(0, pair.pair.length > 2 ? 2 : 1),
                   ),
                 ),
 
                 title: Text(pair.pair),
 
-                subtitle: Text(
-                  "Trade : ${pair.totalTrade}",
-                ),
+                subtitle: Text("Trade : ${pair.totalTrade}"),
 
                 trailing: Text(
                   pair.profit.toStringAsFixed(2),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color:
-                        pair.profit >= 0
-                            ? Colors.green
-                            : Colors.red,
+                    color: pair.profit >= 0 ? Colors.green : Colors.red,
                   ),
                 ),
 

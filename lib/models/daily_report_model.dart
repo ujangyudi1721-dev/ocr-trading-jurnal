@@ -1,3 +1,6 @@
+/// Rekap satu hari trading (dipakai di `DailyReportPage`), hasil
+/// mengelompokkan [AccountTimelineModel] per tanggal oleh
+/// `DailyReportService.generate()`.
 class DailyReportModel {
   // Tanggal laporan (jam selalu 00:00:00)
   final DateTime date;
@@ -50,8 +53,11 @@ class DailyReportModel {
   // HELPER
   // ==========================================
 
+  /// `true` kalau hari ini profit (atau break-even).
   bool get isProfit => profit >= 0;
 
+  /// Persentase trade yang profit hari ini (0-100), 0 kalau belum ada
+  /// trade hari itu (hindari pembagian dengan nol).
   double get winRate {
     if (totalTrade == 0) return 0;
 

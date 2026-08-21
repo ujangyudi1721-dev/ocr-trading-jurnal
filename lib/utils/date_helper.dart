@@ -1,3 +1,10 @@
+/// Kumpulan helper untuk parsing & format tanggal.
+///
+/// Aplikasi ini menyimpan tanggal sebagai `String` di banyak tempat
+/// (hasil OCR, input manual), dengan dua format berbeda yang harus
+/// dikenali sekaligus — lihat [parse]. Semua kode lain di app ini
+/// (models, services) selalu lewat sini untuk urusan tanggal, supaya
+/// aturan parsing/format hanya ada di satu tempat.
 class DateHelper {
   // ==========================================================
   // MONTH MAP (INDONESIA)

@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 
+/// Satu pilihan emosi (dipakai saat user tag emosi ke sebuah trade).
+///
+/// [key] adalah nilai yang disimpan ke database (harus persis sama
+/// dengan yang dipakai di [TradeModel.emotion]), sedangkan [label],
+/// [icon], dan [color] hanya untuk tampilan UI.
 class EmotionOption {
   final String key;
   final String label;
@@ -14,7 +19,10 @@ class EmotionOption {
   });
 }
 
+/// Daftar semua emosi yang bisa dipilih user, plus helper untuk
+/// mencari [EmotionOption] dari key yang tersimpan di database.
 class EmotionConstants {
+  // Daftar emosi yang ditampilkan di dropdown/chip picker.
   static const List<EmotionOption> options = [
     EmotionOption(
       key: "Tenang",
@@ -66,6 +74,8 @@ class EmotionConstants {
     ),
   ];
 
+  /// Cari [EmotionOption] berdasarkan [key] yang tersimpan di trade.
+  /// Return `null` kalau [key] null atau tidak ditemukan di [options].
   static EmotionOption? find(String? key) {
     if (key == null) return null;
 

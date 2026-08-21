@@ -1,6 +1,17 @@
 import '../models/trade_model.dart';
+import '../utils/app_logger.dart';
 
+/// Mengekstrak field-field [TradeModel] (pair, lot, profit, tanggal, dst)
+/// dari teks mentah hasil OCR (ML Kit) atas screenshot popup detail
+/// trade di MetaTrader.
+///
+/// Semua logic di sini murni regex/pattern-matching terhadap teks —
+/// tidak ada akses database atau I/O. Karena sumbernya OCR (bisa salah
+/// baca / format tidak konsisten), field yang gagal ditemukan diisi
+/// nilai default ("UNKNOWN"/"0") di bagian VALIDATION di bawah,
+/// bukan dibiarkan kosong atau melempar error.
 class OCRParser {
+  /// Parse [text] hasil OCR menjadi satu [TradeModel].
   static TradeModel parse(String text) {
     String ticket = "";
     String pair = "";
@@ -88,13 +99,13 @@ class OCRParser {
       r'\d+\s+\w+\s+\d+\s+\d+[.,]\d+[.,]\d+',
     ).allMatches(text).toList();
 
-    print("===== DATE MATCHES =====");
+    AppLogger.log("===== DATE MATCHES =====");
 
     for (var d in dateMatches) {
-      print(d.group(0));
+      AppLogger.log(d.group(0));
     }
 
-    print("========================");
+    AppLogger.log("========================");
 
     if (dateMatches.length >= 2) {
       openTime = dateMatches[0].group(0)!;
@@ -117,13 +128,13 @@ class OCRParser {
       prices.add(value.replaceAll(',', ''));
     }
 
-    print("===== SEMUA HARGA =====");
+    AppLogger.log("===== SEMUA HARGA =====");
 
     for (final p in prices) {
-      print(p);
+      AppLogger.log(p);
     }
 
-    print("=======================");
+    AppLogger.log("=======================");
 
     if (prices.length >= 4) {
       sl = prices[prices.length - 4];
@@ -136,24 +147,24 @@ class OCRParser {
     // DEBUG
     // =========================
 
-    print("========== HASIL PARSER ==========");
+    AppLogger.log("========== HASIL PARSER ==========");
 
-    print("Ticket      : $ticket");
-    print("Pair        : $pair");
-    print("Type        : $type");
-    print("Lot         : $lot");
-    print("Profit      : $profit");
+    AppLogger.log("Ticket      : $ticket");
+    AppLogger.log("Pair        : $pair");
+    AppLogger.log("Type        : $type");
+    AppLogger.log("Lot         : $lot");
+    AppLogger.log("Profit      : $profit");
 
-    print("Open Time   : $openTime");
-    print("Close Time  : $closeTime");
+    AppLogger.log("Open Time   : $openTime");
+    AppLogger.log("Close Time  : $closeTime");
 
-    print("SL          : $sl");
-    print("TP          : $tp");
+    AppLogger.log("SL          : $sl");
+    AppLogger.log("TP          : $tp");
 
-    print("Open Price  : $openPrice");
-    print("Close Price : $closePrice");
+    AppLogger.log("Open Price  : $openPrice");
+    AppLogger.log("Close Price : $closePrice");
 
-    print("==================================");
+    AppLogger.log("==================================");
 
     // ========================================
     // SECTION VALIDATION

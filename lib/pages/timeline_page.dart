@@ -5,6 +5,10 @@ import '../services/account_timeline_service.dart';
 import '../services/hive_service.dart';
 import '../utils/date_helper.dart';
 
+/// Daftar mentah seluruh kejadian akun ([AccountTimelineModel]) —
+/// Deposit, Withdraw, dan Trade digabung jadi satu list kronologis,
+/// terbaru di atas. Beda dari `DailyReportPage` yang merangkum per
+/// hari, halaman ini menampilkan setiap kejadian apa adanya.
 class TimelinePage extends StatefulWidget {
   const TimelinePage({super.key});
 
@@ -15,6 +19,7 @@ class TimelinePage extends StatefulWidget {
 class _TimelinePageState extends State<TimelinePage> {
   List<AccountTimelineModel> timeline = [];
 
+  /// Warna badge sesuai jenis kejadian, dipakai di [CircleAvatar].
   Color getColor(String type) {
     switch (type) {
       case "Deposit":
@@ -73,7 +78,7 @@ class _TimelinePageState extends State<TimelinePage> {
                       : item.type == "Withdraw"
                       ? Icons.money_off
                       : Icons.show_chart,
-                    color: Colors.white,
+                  color: Colors.white,
                 ),
               ),
 
@@ -84,8 +89,7 @@ class _TimelinePageState extends State<TimelinePage> {
                 children: [
                   Text(DateHelper.formatDateTime(item.date)),
 
-                  if (item.reference != null)
-                    Text("Reference : ${item.reference}"),
+                  Text("Reference : ${item.reference}"),
 
                   if (item.pair != null) Text("Pair : ${item.pair}"),
 

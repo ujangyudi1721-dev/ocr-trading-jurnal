@@ -13,6 +13,10 @@ import 'history_page.dart';
 import 'dashboard_page.dart';
 import 'account_transaction_page.dart';
 
+/// Halaman utama alur input trade baru: pilih screenshot -> scan OCR
+/// -> koreksi/tag emosi -> simpan. Ini juga halaman pertama yang
+/// dibuka user (lihat `main.dart`), dengan akses cepat ke Dashboard,
+/// History, dan Account Transaction lewat AppBar.
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -24,17 +28,24 @@ class _HomePageState extends State<HomePage> {
   // Maksimal gambar yang bisa di-scan sekaligus
   static const int maxImages = 5;
 
+  /// Screenshot yang dipilih user, sebelum di-scan.
   List<File> imageFiles = [];
+
+  /// Hasil scan OCR untuk tiap [imageFiles] (index-nya sejajar).
   List<TradeModel> trades = [];
+
+  /// Tag emosi yang dipilih user untuk tiap [trades] (index-nya
+  /// sejajar juga) — `null` berarti belum/tidak ditandai.
   List<String?> emotions = [];
+
   bool isScanning = false;
 
+  /// Buka gallery, biarkan user pilih sampai [maxImages] screenshot.
+  /// Reset hasil scan sebelumnya karena gambarnya berganti.
   Future<void> pickImage() async {
     final picker = ImagePicker();
 
-    final List<XFile> images = await picker.pickMultiImage(
-      limit: maxImages,
-    );
+    final List<XFile> images = await picker.pickMultiImage(limit: maxImages);
 
     if (images.isEmpty) return;
 
@@ -45,6 +56,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  /// Jalankan OCR ([OCRService]) satu-per-satu untuk setiap [imageFiles].
   Future<void> scanOCR() async {
     if (imageFiles.isEmpty) return;
 
@@ -71,6 +83,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  /// Toggle tag emosi untuk trade ke-[index] menjadi [key].
   void selectEmotion(int index, String key) {
     setState(() {
       // Tap lagi pada tag yang sama akan membatalkan pilihan
@@ -78,6 +91,9 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  /// Simpan semua [trades] yang valid ([TradeValidator]) ke database,
+  /// sekalian menempelkan [emotions] yang sudah dipilih user. Trade
+  /// yang tidak valid (hasil OCR gagal baca ticket/pair) dilewati.
   Future<void> saveTrade() async {
     if (trades.isEmpty) return;
 
@@ -165,7 +181,11 @@ class _HomePageState extends State<HomePage> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              ActionButtons(onPickImage: pickImage, onScanOCR: scanOCR, onSave: saveTrade),
+              ActionButtons(
+                onPickImage: pickImage,
+                onScanOCR: scanOCR,
+                onSave: saveTrade,
+              ),
               const SizedBox(height: 15),
 
               if (imageFiles.isNotEmpty)
@@ -182,7 +202,7 @@ class _HomePageState extends State<HomePage> {
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: imageFiles.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 8),
+                    separatorBuilder: (_, _) => const SizedBox(width: 8),
                     itemBuilder: (context, index) {
                       return ClipRRect(
                         borderRadius: BorderRadius.circular(8),

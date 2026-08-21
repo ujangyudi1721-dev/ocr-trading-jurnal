@@ -4,24 +4,21 @@ import '../../models/analytics_result_model.dart';
 import '../../models/emotion_statistic_model.dart';
 import '../../constants/emotion_constants.dart';
 
+/// Kartu Dashboard yang menampilkan daftar [EmotionStatisticModel] —
+/// performa trading dikelompokkan per tag emosi — supaya user bisa
+/// lihat emosi mana yang cenderung menguntungkan/merugikan.
+/// Tap satu baris untuk buka detail lengkapnya lewat [_showEmotionDetail].
 class EmotionPerformanceCard extends StatelessWidget {
   final AnalyticsResultModel analytics;
 
-  const EmotionPerformanceCard({
-    super.key,
-    required this.analytics,
-  });
+  const EmotionPerformanceCard({super.key, required this.analytics});
 
-  void _showEmotionDetail(
-    BuildContext context,
-    EmotionStatisticModel stat,
-  ) {
+  /// Tampilkan detail satu emosi ([stat]) dalam bottom sheet.
+  void _showEmotionDetail(BuildContext context, EmotionStatisticModel stat) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(20),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
         return Padding(
@@ -45,7 +42,7 @@ class EmotionPerformanceCard extends StatelessWidget {
               _detailRow(
                 "Win / Loss",
                 "${stat.totalWin} / ${stat.totalLoss}"
-                "  (${stat.winRate.toStringAsFixed(0)}%)",
+                    "  (${stat.winRate.toStringAsFixed(0)}%)",
               ),
 
               _detailRow(
@@ -68,6 +65,7 @@ class EmotionPerformanceCard extends StatelessWidget {
     );
   }
 
+  /// Satu baris "label - value" di dalam bottom sheet detail.
   Widget _detailRow(String label, String value, {Color? color}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -78,10 +76,7 @@ class EmotionPerformanceCard extends StatelessWidget {
 
           Text(
             value,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
+            style: TextStyle(fontWeight: FontWeight.bold, color: color),
           ),
         ],
       ),
@@ -94,9 +89,7 @@ class EmotionPerformanceCard extends StatelessWidget {
 
     return Card(
       elevation: 5,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Padding(
         padding: const EdgeInsets.all(15),
         child: Column(
@@ -104,10 +97,7 @@ class EmotionPerformanceCard extends StatelessWidget {
           children: [
             const Text(
               "PERFORMA vs EMOSI",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 15),
@@ -116,9 +106,7 @@ class EmotionPerformanceCard extends StatelessWidget {
               const Center(
                 child: Padding(
                   padding: EdgeInsets.all(20),
-                  child: Text(
-                    "Belum ada trade yang ditandai emosinya",
-                  ),
+                  child: Text("Belum ada trade yang ditandai emosinya"),
                 ),
               ),
 

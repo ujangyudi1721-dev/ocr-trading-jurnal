@@ -5,6 +5,14 @@ import 'drawdown_model.dart';
 import 'account_timeline_model.dart';
 import 'risk_limit_model.dart';
 
+/// Hasil akhir seluruh perhitungan analytics untuk halaman Dashboard,
+/// dibuat sekali oleh `AnalyticsEngine.generate()` dari data mentah
+/// (trades + account transactions), lalu dipakai apa adanya oleh
+/// widget-widget di `lib/widgets/dashboard/`.
+///
+/// Ini murni "kotak data" (tidak ada logic hitung di sini) — semua
+/// perhitungan ada di `AnalyticsEngine` dan service-service pendukungnya
+/// (`DrawdownService`, dst).
 class AnalyticsResultModel {
   // =============================
   // TRADE STATISTICS

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+/// Kartu statistik generik (icon opsional + judul + nilai besar),
+/// dipakai berulang di `StatisticGrid` pada Dashboard untuk menampilkan
+/// angka-angka ringkas (total trade, win rate, dst). [onTap] opsional
+/// kalau kartunya perlu bisa ditekan.
 class StatCard extends StatelessWidget {
   final String title;
   final String value;
@@ -18,9 +22,7 @@ class StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 3,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
@@ -29,19 +31,14 @@ class StatCard extends StatelessWidget {
           child: Column(
             children: [
               if (icon != null) ...[
-                Icon(
-                  icon,
-                  size: 28,
-                ),
+                Icon(icon, size: 28),
                 const SizedBox(height: 8),
               ],
 
               Text(
                 title,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 14,
-                ),
+                style: const TextStyle(fontSize: 14),
               ),
 
               // Mengisi ruang kosong secara otomatis

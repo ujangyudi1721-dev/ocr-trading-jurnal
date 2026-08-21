@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+/// Kartu Dashboard yang merangkum "kesehatan" akun: persentase growth,
+/// persentase drawdown, dan label status (mis. "Good"/"Warning") dengan
+/// warna badge yang otomatis menyesuaikan [status] di [build].
 class HealthCard extends StatelessWidget {
   final double growth;
   final double drawdown;
@@ -36,26 +39,20 @@ class HealthCard extends StatelessWidget {
 
     return Card(
       elevation: 5,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
             const Text(
               "ACCOUNT HEALTH",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 20),
 
             Row(
-              mainAxisAlignment:
-                  MainAxisAlignment.spaceAround,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 healthItem(
                   "Growth",
@@ -74,10 +71,7 @@ class HealthCard extends StatelessWidget {
             const SizedBox(height: 20),
 
             Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 10,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               decoration: BoxDecoration(
                 color: statusColor.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(20),
@@ -97,11 +91,9 @@ class HealthCard extends StatelessWidget {
     );
   }
 
-  Widget healthItem(
-    String title,
-    String value,
-    IconData icon,
-  ) {
+  /// Satu kolom kecil (icon + label + angka) di dalam [HealthCard],
+  /// dipakai dua kali untuk "Growth" dan "Drawdown".
+  Widget healthItem(String title, String value, IconData icon) {
     return Column(
       children: [
         Icon(icon),
@@ -114,10 +106,7 @@ class HealthCard extends StatelessWidget {
 
         Text(
           value,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
       ],
     );

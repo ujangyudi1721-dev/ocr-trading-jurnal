@@ -23,9 +23,13 @@ import 'daily_report_page.dart';
 import '../widgets/dashboard/risk_limit_card.dart';
 import '../widgets/dashboard/risk_limit_edit_dialog.dart';
 
-import '../services/risk_limit_service.dart';
 import '../services/settings_service.dart';
+import '../utils/app_logger.dart';
 
+/// Halaman ringkasan performa trading (equity, win rate, drawdown,
+/// performa per pair/emosi, risk limit) — kumpulan widget di
+/// `widgets/dashboard/` yang semuanya dibangun dari satu
+/// [AnalyticsResultModel] hasil [AnalyticsEngine.calculate].
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
@@ -45,9 +49,10 @@ class _DashboardPageState extends State<DashboardPage> {
     loadDashboard();
   }
 
+  /// Ambil ulang seluruh data (trade + transaksi akun), hitung ulang
+  /// [analytics] lewat [AnalyticsEngine], lalu refresh tampilan.
+  /// Dipanggil saat halaman dibuka pertama kali dan saat pull-to-refresh.
   Future<void> loadDashboard() async {
-    RiskLimitService.test();
-
     maxLossPercent = await SettingsService.getMaxLossPercent();
     profitTargetPercent = await SettingsService.getProfitTargetPercent();
 
@@ -72,67 +77,70 @@ class _DashboardPageState extends State<DashboardPage> {
     // ANALYTICS
     // =========================
 
-    print("");
-    print("========== ANALYTICS ==========");
+    AppLogger.log("");
+    AppLogger.log("========== ANALYTICS ==========");
 
-    print("Trade           : ${result.totalTrade}");
-    print("Win             : ${result.totalWin}");
-    print("Loss            : ${result.totalLoss}");
+    AppLogger.log("Trade           : ${result.totalTrade}");
+    AppLogger.log("Win             : ${result.totalWin}");
+    AppLogger.log("Loss            : ${result.totalLoss}");
 
-    print("Gross Profit    : ${result.grossProfit}");
-    print("Gross Loss      : ${result.grossLoss}");
-    print("Net Profit      : ${result.netProfit}");
+    AppLogger.log("Gross Profit    : ${result.grossProfit}");
+    AppLogger.log("Gross Loss      : ${result.grossLoss}");
+    AppLogger.log("Net Profit      : ${result.netProfit}");
 
-    print("Win Rate        : ${result.winRate}");
-    print("Average Win     : ${result.averageWin}");
-    print("Average Loss    : ${result.averageLoss}");
-    print("Profit Factor   : ${result.profitFactor}");
+    AppLogger.log("Win Rate        : ${result.winRate}");
+    AppLogger.log("Average Win     : ${result.averageWin}");
+    AppLogger.log("Average Loss    : ${result.averageLoss}");
+    AppLogger.log("Profit Factor   : ${result.profitFactor}");
 
-    print("Deposit         : ${result.totalDeposit}");
-    print("Withdraw        : ${result.totalWithdraw}");
+    AppLogger.log("Deposit         : ${result.totalDeposit}");
+    AppLogger.log("Withdraw        : ${result.totalWithdraw}");
 
-    print("Balance         : ${result.currentBalance}");
+    AppLogger.log("Balance         : ${result.currentBalance}");
 
-    print("Peak Balance    : ${result.drawdown.peakBalance}");
-    print("Current DD      : ${result.drawdown.currentDrawdown}");
-    print("Maximum DD      : ${result.drawdown.maximumDrawdown}");
+    AppLogger.log("Peak Balance    : ${result.drawdown.peakBalance}");
+    AppLogger.log("Current DD      : ${result.drawdown.currentDrawdown}");
+    AppLogger.log("Maximum DD      : ${result.drawdown.maximumDrawdown}");
 
-    print("===============================");
+    AppLogger.log("===============================");
 
     // =========================
     // EQUITY
     // =========================
 
-    print("");
-    print("========== EQUITY ==========");
+    AppLogger.log("");
+    AppLogger.log("========== EQUITY ==========");
 
     for (final point in result.equity) {
-      print("${point.index} -> ${point.balance}");
+      AppLogger.log("${point.index} -> ${point.balance}");
     }
 
-    print("============================");
+    AppLogger.log("============================");
 
     // =========================
     // PAIR PERFORMANCE
     // =========================
 
-    print("");
-    print("===== PAIR PERFORMANCE =====");
+    AppLogger.log("");
+    AppLogger.log("===== PAIR PERFORMANCE =====");
 
     for (final pair in result.pairPerformance) {
-      print(
+      AppLogger.log(
         "${pair.pair} | "
         "Trade=${pair.totalTrade} | "
         "Profit=${pair.profit}",
       );
     }
 
-    print("============================");
+    AppLogger.log("============================");
     if (!mounted) return;
 
     setState(() {});
   }
 
+  /// Buka [RiskLimitEditDialog], simpan hasilnya lewat [SettingsService]
+  /// kalau user menekan "Simpan", lalu reload dashboard supaya
+  /// [RiskLimitCard] menampilkan angka baru.
   Future<void> editRiskLimit() async {
     final result = await showDialog<Map<String, double>>(
       context: context,
@@ -252,8 +260,6 @@ class _DashboardPageState extends State<DashboardPage> {
                 riskLimit: analytics!.riskLimit,
                 onTap: editRiskLimit,
               ),
-
-              const SizedBox(height: 15),
 
               const SizedBox(height: 15),
 

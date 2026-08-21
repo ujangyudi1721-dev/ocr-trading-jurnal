@@ -5,6 +5,10 @@ import '../../shared/stat_card.dart';
 import '../../pages/history_page.dart';
 import '../../pages/account_transaction_page.dart';
 
+/// Grid 2 kolom berisi ringkasan angka utama di Dashboard (total trade,
+/// win rate, gross profit/loss, deposit/withdraw), masing-masing sebagai
+/// [StatCard]. Beberapa kartu bisa ditekan untuk lompat ke halaman
+/// detailnya (History Trade atau Account Transaction).
 class StatisticGrid extends StatelessWidget {
   final AnalyticsResultModel analytics;
 

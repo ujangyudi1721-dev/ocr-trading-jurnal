@@ -1,5 +1,9 @@
 import 'package:hive/hive.dart';
 
+/// Menyimpan preferensi user yang persisten tapi bukan data trading
+/// (saat ini: persentase batas rugi & target profit untuk fitur
+/// Risk Limit). Beda box dari [HiveService] karena ini "settings",
+/// bukan data transaksi.
 class SettingsService {
   static const String boxName = "settings";
 
@@ -13,12 +17,16 @@ class SettingsService {
     return await Hive.openBox(boxName);
   }
 
+  /// Ambil persentase batas rugi tersimpan, atau [defaultMaxLossPercent]
+  /// kalau belum pernah diset user.
   static Future<double> getMaxLossPercent() async {
     final box = await _openBox();
 
     return box.get(_maxLossKey, defaultValue: defaultMaxLossPercent) as double;
   }
 
+  /// Ambil persentase target profit tersimpan, atau
+  /// [defaultProfitTargetPercent] kalau belum pernah diset user.
   static Future<double> getProfitTargetPercent() async {
     final box = await _openBox();
 
@@ -26,6 +34,7 @@ class SettingsService {
         as double;
   }
 
+  /// Simpan pengaturan batas risiko baru dari [RiskLimitEditDialog].
   static Future<void> saveRiskLimit({
     required double maxLossPercent,
     required double profitTargetPercent,
