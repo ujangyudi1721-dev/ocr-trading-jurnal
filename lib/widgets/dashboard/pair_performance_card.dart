@@ -114,8 +114,10 @@ class PairPerformanceCard extends StatelessWidget {
                 contentPadding: EdgeInsets.zero,
 
                 leading: CircleAvatar(
+                  backgroundColor: pair.profit >= 0 ? Colors.green : Colors.red,
                   child: Text(
                     pair.pair.substring(0, pair.pair.length > 2 ? 2 : 1),
+                    style: const TextStyle(color: Colors.white),
                   ),
                 ),
 

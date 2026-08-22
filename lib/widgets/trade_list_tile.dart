@@ -44,10 +44,7 @@ class TradeListTile extends StatelessWidget {
             const SizedBox(width: 6),
 
             Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 6,
-                vertical: 2,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
                 color: typeColor.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(4),
@@ -72,10 +69,7 @@ class TradeListTile extends StatelessWidget {
           children: [
             Text(
               trade.profit,
-              style: TextStyle(
-                color: profitColor,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(color: profitColor, fontWeight: FontWeight.bold),
             ),
 
             Text(

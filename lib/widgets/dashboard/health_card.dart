@@ -58,12 +58,14 @@ class HealthCard extends StatelessWidget {
                   "Growth",
                   "${growth.toStringAsFixed(2)}%",
                   Icons.trending_up,
+                  growth >= 0 ? Colors.green : Colors.red,
                 ),
 
                 healthItem(
                   "Drawdown",
                   "${drawdown.toStringAsFixed(2)}%",
                   Icons.trending_down,
+                  Colors.orange,
                 ),
               ],
             ),
@@ -93,10 +95,17 @@ class HealthCard extends StatelessWidget {
 
   /// Satu kolom kecil (icon + label + angka) di dalam [HealthCard],
   /// dipakai dua kali untuk "Growth" dan "Drawdown".
-  Widget healthItem(String title, String value, IconData icon) {
+  Widget healthItem(String title, String value, IconData icon, Color color) {
     return Column(
       children: [
-        Icon(icon),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.12),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: color),
+        ),
 
         const SizedBox(height: 8),
 
@@ -106,7 +115,11 @@ class HealthCard extends StatelessWidget {
 
         Text(
           value,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: color,
+          ),
         ),
       ],
     );

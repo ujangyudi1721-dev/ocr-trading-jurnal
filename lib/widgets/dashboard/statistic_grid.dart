@@ -47,6 +47,7 @@ class StatisticGrid extends StatelessWidget {
           title: "Total Trade",
           value: analytics.totalTrade.toString(),
           icon: Icons.swap_horiz,
+          color: Colors.indigo,
           onTap: () => _openHistory(context),
         ),
 
@@ -54,12 +55,14 @@ class StatisticGrid extends StatelessWidget {
           title: "Win Rate",
           value: "${analytics.winRate.toStringAsFixed(2)}%",
           icon: Icons.percent,
+          color: Colors.purple,
         ),
 
         StatCard(
           title: "Total Win",
           value: analytics.totalWin.toString(),
           icon: Icons.trending_up,
+          color: Colors.green,
           onTap: () => _openHistory(context),
         ),
 
@@ -67,6 +70,7 @@ class StatisticGrid extends StatelessWidget {
           title: "Total Loss",
           value: analytics.totalLoss.toString(),
           icon: Icons.trending_down,
+          color: Colors.red,
           onTap: () => _openHistory(context),
         ),
 
@@ -74,18 +78,21 @@ class StatisticGrid extends StatelessWidget {
           title: "Gross Profit",
           value: analytics.grossProfit.toStringAsFixed(2),
           icon: Icons.attach_money,
+          color: Colors.teal,
         ),
 
         StatCard(
           title: "Gross Loss",
           value: analytics.grossLoss.toStringAsFixed(2),
           icon: Icons.money_off,
+          color: Colors.deepOrange,
         ),
 
         StatCard(
           title: "Deposit",
           value: analytics.totalDeposit.toStringAsFixed(2),
           icon: Icons.account_balance_wallet,
+          color: Colors.blue,
           onTap: () => _openAccountTransaction(context),
         ),
 
@@ -93,6 +100,7 @@ class StatisticGrid extends StatelessWidget {
           title: "Withdraw",
           value: analytics.totalWithdraw.toStringAsFixed(2),
           icon: Icons.payments,
+          color: Colors.amber.shade800,
           onTap: () => _openAccountTransaction(context),
         ),
       ],

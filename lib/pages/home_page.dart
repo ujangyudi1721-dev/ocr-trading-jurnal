@@ -26,7 +26,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   // Maksimal gambar yang bisa di-scan sekaligus
-  static const int maxImages = 5;
+  static const int maxImages = 50;
 
   /// Screenshot yang dipilih user, sebelum di-scan.
   List<File> imageFiles = [];
