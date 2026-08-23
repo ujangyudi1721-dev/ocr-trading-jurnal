@@ -10,7 +10,17 @@ class TradeListTile extends StatelessWidget {
   final TradeModel trade;
   final VoidCallback? onTap;
 
-  const TradeListTile({super.key, required this.trade, this.onTap});
+  /// Kalau diisi, tampilkan tombol hapus (ikon sampah) di sisi kanan.
+  /// `null` (default) berarti tile ini tidak punya aksi hapus — dipakai
+  /// misalnya di `DailyTradesPage` yang sifatnya cuma lihat detail hari itu.
+  final VoidCallback? onDelete;
+
+  const TradeListTile({
+    super.key,
+    required this.trade,
+    this.onTap,
+    this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -63,19 +73,33 @@ class TradeListTile extends StatelessWidget {
 
         subtitle: Text(trade.ticket),
 
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              trade.profit,
-              style: TextStyle(color: profitColor, fontWeight: FontWeight.bold),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  trade.profit,
+                  style: TextStyle(
+                    color: profitColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                Text(
+                  trade.lot,
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
             ),
 
-            Text(
-              trade.lot,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-            ),
+            if (onDelete != null)
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                onPressed: onDelete,
+              ),
           ],
         ),
 

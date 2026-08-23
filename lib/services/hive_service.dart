@@ -57,17 +57,16 @@ class HiveService {
     return box.values.toList();
   }
 
-  /// Hapus satu trade berdasarkan posisinya di box.
-  static Future<void> deleteTrade(int index) async {
-    final box = await openTradeBox();
+  /// Hapus satu trade tertentu. Pakai referensi objeknya langsung (bukan
+  /// index) supaya tetap benar walau posisi trade di box bergeser akibat
+  /// insert dari sync.
+  static Future<void> deleteTrade(TradeModel trade) async {
+    final remoteId = trade.remoteId;
 
-    final trade = box.getAt(index);
-    final remoteId = trade?.remoteId;
-
-    await box.deleteAt(index);
+    await trade.delete();
 
     if (remoteId != null) {
-      unawaited(SyncService.softDeleteTrade(remoteId));
+      unawaited(SyncService.deleteRemoteTrade(remoteId));
     }
   }
 
@@ -118,7 +117,7 @@ class HiveService {
     await tx.delete();
 
     if (remoteId != null) {
-      unawaited(SyncService.softDeleteAccountTransaction(remoteId));
+      unawaited(SyncService.deleteRemoteAccountTransaction(remoteId));
     }
   }
 

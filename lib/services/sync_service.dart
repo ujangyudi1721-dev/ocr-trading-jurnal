@@ -17,6 +17,15 @@ import 'supabase_service.dart';
 /// pernah melempar ke pemanggil — kegagalan itu akan tertutup sendiri lewat
 /// [pullAndReconcile] berikutnya (dipanggil saat login & app resume), asal
 /// `updatedAt` lokal sudah di-set sinkron sebelum push dicoba.
+///
+/// Hapus (dari app manapun, ATAU manual lewat Supabase Dashboard) adalah
+/// hard delete di server — barisnya benar-benar hilang, bukan cuma ditandai
+/// `deleted_at`. Supaya device lain tetap tahu sebuah baris sudah hilang
+/// (termasuk yang dihapus manual di luar app, yang tidak meninggalkan jejak
+/// apa pun untuk query delta biasa), [pullAndReconcile] menjalankan pass
+/// tambahan: bandingkan seluruh ID yang masih ada di server dengan yang ada
+/// di Hive, lalu hapus lokal yang sudah tidak ada di server — lihat
+/// `_pruneDeletedRemotely`.
 class SyncService {
   static String? get _userId => SupabaseService.currentUser?.id;
 
@@ -50,18 +59,18 @@ class SyncService {
     }
   }
 
-  static Future<void> softDeleteTrade(String remoteId) async {
+  static Future<void> deleteRemoteTrade(String remoteId) async {
     final userId = _userId;
     if (userId == null) return;
 
     try {
       await SupabaseService.client
           .from('trades')
-          .update({'deleted_at': DateTime.now().toIso8601String()})
+          .delete()
           .eq('id', remoteId)
           .eq('user_id', userId);
     } catch (e) {
-      AppLogger.log('SyncService.softDeleteTrade gagal: $e');
+      AppLogger.log('SyncService.deleteRemoteTrade gagal: $e');
     }
   }
 
@@ -85,18 +94,18 @@ class SyncService {
     }
   }
 
-  static Future<void> softDeleteAccountTransaction(String remoteId) async {
+  static Future<void> deleteRemoteAccountTransaction(String remoteId) async {
     final userId = _userId;
     if (userId == null) return;
 
     try {
       await SupabaseService.client
           .from('account_transactions')
-          .update({'deleted_at': DateTime.now().toIso8601String()})
+          .delete()
           .eq('id', remoteId)
           .eq('user_id', userId);
     } catch (e) {
-      AppLogger.log('SyncService.softDeleteAccountTransaction gagal: $e');
+      AppLogger.log('SyncService.deleteRemoteAccountTransaction gagal: $e');
     }
   }
 
@@ -164,8 +173,6 @@ class SyncService {
       final row = raw as Map<String, dynamic>;
       final remoteId = row['id'] as String;
       final remoteUpdatedAt = DateTime.parse(row['updated_at'] as String);
-      final remoteDeletedAt =
-          row['deleted_at'] == null ? null : DateTime.parse(row['deleted_at'] as String);
 
       TradeModel? local;
       for (final t in box.values) {
@@ -173,12 +180,6 @@ class SyncService {
           local = t;
           break;
         }
-      }
-
-      if (remoteDeletedAt != null) {
-        if (local != null) await local.delete();
-        justPulled.add(remoteId);
-        continue;
       }
 
       if (local != null && local.updatedAt != null && local.updatedAt!.isAfter(remoteUpdatedAt)) {
@@ -233,17 +234,45 @@ class SyncService {
       if (id == null || justPulled.contains(id)) continue;
       if (t.updatedAt == null || !t.updatedAt!.isAfter(lastSyncedAt)) continue;
 
-      if (t.deletedAt != null) {
-        await softDeleteTrade(id);
-      } else {
-        await pushTrade(t);
-      }
+      await pushTrade(t);
     }
+
+    await _pruneTradesDeletedRemotely(userId, lastSyncedAt);
 
     if (overwroteLocalEdit) {
       AppLogger.log(
         'SyncService: tersinkron, sebagian perubahan trade lokal mungkin tertimpa data server.',
       );
+    }
+  }
+
+  /// Hapus trade lokal yang sudah tidak ada di server SAMA SEKALI —
+  /// menutup celah baris yang dihapus manual lewat Supabase Dashboard
+  /// (hard delete langsung, tidak lewat [deleteRemoteTrade]) sehingga
+  /// tidak pernah muncul di query delta biasa.
+  ///
+  /// Hanya menghapus baris yang `updatedAt`-nya SEBELUM [lastSyncedAt]
+  /// (sync sebelumnya) — artinya baris itu sudah pernah berhasil tersinkron
+  /// minimal sekali. Ini penting: trade yang baru dibuat offline & belum
+  /// sempat ke-push (jadi wajar belum ada di server) TIDAK boleh ikut
+  /// terhapus hanya karena "belum ada di server".
+  static Future<void> _pruneTradesDeletedRemotely(
+    String userId,
+    DateTime lastSyncedAt,
+  ) async {
+    final idRows = await SupabaseService.client
+        .from('trades')
+        .select('id')
+        .eq('user_id', userId) as List<dynamic>;
+    final serverIds = idRows.map((r) => (r as Map<String, dynamic>)['id'] as String).toSet();
+
+    final box = await HiveService.openTradeBox();
+    for (final t in box.values.toList()) {
+      final id = t.remoteId;
+      if (id == null || serverIds.contains(id)) continue;
+      if (t.updatedAt == null || !t.updatedAt!.isBefore(lastSyncedAt)) continue;
+
+      await t.delete();
     }
   }
 
@@ -266,8 +295,6 @@ class SyncService {
       final row = raw as Map<String, dynamic>;
       final remoteId = row['id'] as String;
       final remoteUpdatedAt = DateTime.parse(row['updated_at'] as String);
-      final remoteDeletedAt =
-          row['deleted_at'] == null ? null : DateTime.parse(row['deleted_at'] as String);
 
       AccountTransactionModel? local;
       for (final tx in box.values) {
@@ -275,12 +302,6 @@ class SyncService {
           local = tx;
           break;
         }
-      }
-
-      if (remoteDeletedAt != null) {
-        if (local != null) await local.delete();
-        justPulled.add(remoteId);
-        continue;
       }
 
       if (local != null && local.updatedAt != null && local.updatedAt!.isAfter(remoteUpdatedAt)) {
@@ -317,17 +338,36 @@ class SyncService {
       if (id == null || justPulled.contains(id)) continue;
       if (tx.updatedAt == null || !tx.updatedAt!.isAfter(lastSyncedAt)) continue;
 
-      if (tx.deletedAt != null) {
-        await softDeleteAccountTransaction(id);
-      } else {
-        await pushAccountTransaction(tx);
-      }
+      await pushAccountTransaction(tx);
     }
+
+    await _pruneAccountTransactionsDeletedRemotely(userId, lastSyncedAt);
 
     if (overwroteLocalEdit) {
       AppLogger.log(
         'SyncService: tersinkron, sebagian perubahan transaksi akun lokal mungkin tertimpa data server.',
       );
+    }
+  }
+
+  /// Sama seperti [_pruneTradesDeletedRemotely], untuk transaksi akun.
+  static Future<void> _pruneAccountTransactionsDeletedRemotely(
+    String userId,
+    DateTime lastSyncedAt,
+  ) async {
+    final idRows = await SupabaseService.client
+        .from('account_transactions')
+        .select('id')
+        .eq('user_id', userId) as List<dynamic>;
+    final serverIds = idRows.map((r) => (r as Map<String, dynamic>)['id'] as String).toSet();
+
+    final box = await HiveService.openAccountBox();
+    for (final tx in box.values.toList()) {
+      final id = tx.remoteId;
+      if (id == null || serverIds.contains(id)) continue;
+      if (tx.updatedAt == null || !tx.updatedAt!.isBefore(lastSyncedAt)) continue;
+
+      await tx.delete();
     }
   }
 

@@ -95,6 +95,40 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   // ==========================================================
+  // HAPUS TRADE
+  // ==========================================================
+
+  /// Minta konfirmasi lewat dialog, lalu hapus [trade] kalau user setuju.
+  /// Hapusnya ikut disinkronkan ke Supabase (lihat `HiveService.deleteTrade`).
+  Future<void> deleteTrade(TradeModel trade) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Hapus Trade"),
+        content: Text(
+          "Yakin ingin menghapus trade ${trade.pair} (${trade.ticket})?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Batal"),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Hapus"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    await HiveService.deleteTrade(trade);
+
+    await loadTrades();
+  }
+
+  // ==========================================================
   // EXPORT
   // ==========================================================
 
@@ -193,6 +227,7 @@ class _HistoryPageState extends State<HistoryPage> {
                             ),
                           );
                         },
+                        onDelete: () => deleteTrade(trade),
                       );
                     },
                   ),
