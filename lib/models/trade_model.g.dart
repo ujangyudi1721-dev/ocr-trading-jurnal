@@ -29,13 +29,16 @@ class TradeModelAdapter extends TypeAdapter<TradeModel> {
       openPrice: fields[9] as String,
       closePrice: fields[10] as String,
       emotion: fields[11] as String?,
+      remoteId: fields[12] as String?,
+      updatedAt: fields[13] as DateTime?,
+      deletedAt: fields[14] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, TradeModel obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(15)
       ..writeByte(0)
       ..write(obj.ticket)
       ..writeByte(1)
@@ -59,7 +62,13 @@ class TradeModelAdapter extends TypeAdapter<TradeModel> {
       ..writeByte(10)
       ..write(obj.closePrice)
       ..writeByte(11)
-      ..write(obj.emotion);
+      ..write(obj.emotion)
+      ..writeByte(12)
+      ..write(obj.remoteId)
+      ..writeByte(13)
+      ..write(obj.updatedAt)
+      ..writeByte(14)
+      ..write(obj.deletedAt);
   }
 
   @override

@@ -68,6 +68,23 @@ class TradeModel extends HiveObject {
   @HiveField(11)
   String? emotion;
 
+  /// ID stabil untuk sync ke Supabase (uuid v4, di-generate sekali saat
+  /// trade pertama kali disimpan / saat backfill data lama). `null` berarti
+  /// baris ini belum pernah disentuh proses sync.
+  @HiveField(12)
+  String? remoteId;
+
+  /// Kapan trade ini terakhir diubah secara lokal. Dipakai untuk keputusan
+  /// last-write-wins saat sync — harus di-set sinkron setiap kali ada
+  /// perubahan lokal, sebelum request ke Supabase dikirim.
+  @HiveField(13)
+  DateTime? updatedAt;
+
+  /// Kapan trade ini dihapus (soft delete, dipropagasi ke device lain lewat
+  /// sync). `null` selama trade masih aktif.
+  @HiveField(14)
+  DateTime? deletedAt;
+
   TradeModel({
     required this.ticket,
     required this.pair,
@@ -81,6 +98,9 @@ class TradeModel extends HiveObject {
     required this.openPrice,
     required this.closePrice,
     this.emotion,
+    this.remoteId,
+    this.updatedAt,
+    this.deletedAt,
   });
 
   /// [openTime] yang sudah di-parse jadi [DateTime].

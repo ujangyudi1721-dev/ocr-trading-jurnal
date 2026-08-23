@@ -1,14 +1,19 @@
+import 'dart:async';
+
 import 'package:hive/hive.dart';
+
+import 'sync_service.dart';
 
 /// Menyimpan preferensi user yang persisten tapi bukan data trading
 /// (saat ini: persentase batas rugi & target profit untuk fitur
-/// Risk Limit). Beda box dari [HiveService] karena ini "settings",
-/// bukan data transaksi.
+/// Risk Limit, plus bookmark waktu sync terakhir). Beda box dari
+/// [HiveService] karena ini "settings", bukan data transaksi.
 class SettingsService {
   static const String boxName = "settings";
 
   static const String _maxLossKey = "max_loss_percent";
   static const String _profitTargetKey = "profit_target_percent";
+  static const String _lastSyncedAtKey = "last_synced_at";
 
   static const double defaultMaxLossPercent = 2;
   static const double defaultProfitTargetPercent = 3;
@@ -34,8 +39,29 @@ class SettingsService {
         as double;
   }
 
-  /// Simpan pengaturan batas risiko baru dari [RiskLimitEditDialog].
+  /// Simpan pengaturan batas risiko baru dari [RiskLimitEditDialog], lalu
+  /// coba sinkronkan ke Supabase (best-effort, tidak blokir kalau offline).
   static Future<void> saveRiskLimit({
+    required double maxLossPercent,
+    required double profitTargetPercent,
+  }) async {
+    await saveRiskLimitLocalOnly(
+      maxLossPercent: maxLossPercent,
+      profitTargetPercent: profitTargetPercent,
+    );
+
+    unawaited(
+      SyncService.pushSettings(
+        maxLossPercent: maxLossPercent,
+        profitTargetPercent: profitTargetPercent,
+      ),
+    );
+  }
+
+  /// Simpan pengaturan batas risiko tanpa memicu push ke Supabase. Dipakai
+  /// [SyncService] sendiri saat menulis hasil pull dari server ke lokal,
+  /// supaya tidak terjadi push-balik yang tidak perlu.
+  static Future<void> saveRiskLimitLocalOnly({
     required double maxLossPercent,
     required double profitTargetPercent,
   }) async {
@@ -43,5 +69,21 @@ class SettingsService {
 
     await box.put(_maxLossKey, maxLossPercent);
     await box.put(_profitTargetKey, profitTargetPercent);
+  }
+
+  /// Waktu terakhir [SyncService.pullAndReconcile] berhasil jalan, atau
+  /// `null` kalau belum pernah sync sama sekali.
+  static Future<DateTime?> getLastSyncedAt() async {
+    final box = await _openBox();
+
+    final iso = box.get(_lastSyncedAtKey) as String?;
+    return iso == null ? null : DateTime.parse(iso);
+  }
+
+  /// Set bookmark waktu sync terakhir.
+  static Future<void> setLastSyncedAt(DateTime time) async {
+    final box = await _openBox();
+
+    await box.put(_lastSyncedAtKey, time.toIso8601String());
   }
 }

@@ -21,19 +21,31 @@ class AccountTransactionModelAdapter
       date: fields[0] as String,
       type: fields[1] as String,
       amount: fields[2] as double,
+      note: fields[3] as String?,
+      remoteId: fields[4] as String?,
+      updatedAt: fields[5] as DateTime?,
+      deletedAt: fields[6] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, AccountTransactionModel obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.date)
       ..writeByte(1)
       ..write(obj.type)
       ..writeByte(2)
-      ..write(obj.amount);
+      ..write(obj.amount)
+      ..writeByte(3)
+      ..write(obj.note)
+      ..writeByte(4)
+      ..write(obj.remoteId)
+      ..writeByte(5)
+      ..write(obj.updatedAt)
+      ..writeByte(6)
+      ..write(obj.deletedAt);
   }
 
   @override

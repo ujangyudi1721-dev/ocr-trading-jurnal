@@ -23,6 +23,7 @@ class AccountTransactionPage extends StatefulWidget {
 
 class _AccountTransactionPageState extends State<AccountTransactionPage> {
   final amountController = TextEditingController();
+  final noteController = TextEditingController();
 
   String type = "Deposit";
 
@@ -39,6 +40,8 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
     if (isEdit) {
       amountController.text = widget.transaction!.amount.toString();
 
+      noteController.text = widget.transaction!.note ?? "";
+
       type = widget.transaction!.type;
 
       selectedDate = widget.transaction!.dateTime ?? DateTime.now();
@@ -48,6 +51,7 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
   @override
   void dispose() {
     amountController.dispose();
+    noteController.dispose();
     super.dispose();
   }
 
@@ -58,11 +62,14 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
 
     if (amount <= 0) return;
 
+    final note = noteController.text.trim();
+
     if (isEdit) {
       widget.transaction!
         ..date = DateHelper.formatStorage(selectedDate)
         ..type = type
-        ..amount = amount;
+        ..amount = amount
+        ..note = note.isEmpty ? null : note;
 
       await widget.transaction!.save();
     } else {
@@ -70,6 +77,7 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
         date: DateHelper.formatStorage(selectedDate),
         type: type,
         amount: amount,
+        note: note.isEmpty ? null : note,
       );
 
       await HiveService.saveAccountTransaction(tx);
@@ -134,6 +142,17 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
                   type = value!;
                 });
               },
+            ),
+
+            const SizedBox(height: 20),
+
+            TextField(
+              controller: noteController,
+              maxLines: 2,
+              decoration: const InputDecoration(
+                labelText: "Keterangan (opsional)",
+                hintText: "Mis. TF dari BCA, biaya admin, dll",
+              ),
             ),
 
             const SizedBox(height: 20),

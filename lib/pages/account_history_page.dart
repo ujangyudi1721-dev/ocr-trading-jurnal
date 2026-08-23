@@ -73,7 +73,11 @@ class _AccountHistoryPageState extends State<AccountHistoryPage> {
                   : Icons.arrow_upward,
             ),
             title: Text(item.type),
-            subtitle: Text(item.date),
+            subtitle: Text(
+              item.note == null || item.note!.isEmpty
+                  ? item.date
+                  : "${item.date} • ${item.note}",
+            ),
             onTap: () async {
               final result = await Navigator.push(
                 context,

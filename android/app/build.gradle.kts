@@ -58,6 +58,13 @@ android {
             } else {
                 signingConfigs.getByName("debug")
             }
+            // Dimatikan: google_mlkit_text_recognition memuat model on-device
+            // secara dinamis lewat Google Play Services (DynamiteModule) pakai
+            // reflection. R8 minify menghapus/mengubah kelas internal yang
+            // dibutuhkan proses itu, menyebabkan NullPointerException saat
+            // scan OCR di build release meski di debug normal.
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

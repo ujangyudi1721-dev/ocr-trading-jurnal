@@ -1,15 +1,26 @@
+import 'dart:async';
+
 import 'package:hive/hive.dart';
+import 'package:uuid/uuid.dart';
 
 import '../models/trade_model.dart';
 import '../models/account_transaction_model.dart';
 import '../utils/app_logger.dart';
+import 'sync_service.dart';
 
 /// Lapisan akses ke database lokal (Hive).
 ///
 /// Semua baca/tulis ke Hive box (`trades` dan `account_transactions`)
 /// harus lewat sini, bukan dipanggil langsung dari halaman/service lain
 /// — supaya nama box & cara buka box hanya didefinisikan di satu tempat.
+///
+/// Tiap simpan/hapus juga memberi `remoteId`+`updatedAt` pada row (kalau
+/// belum ada) lalu memicu push ke Supabase lewat [SyncService] secara
+/// best-effort (`unawaited`, tidak pernah menggagalkan write lokal kalau
+/// offline — lihat dokumentasi [SyncService]).
 class HiveService {
+  static const _uuid = Uuid();
+
   // ==========================================
   // BOX NAMES
   // ==========================================
@@ -31,7 +42,12 @@ class HiveService {
   static Future<void> saveTrade(TradeModel trade) async {
     final box = await openTradeBox();
 
+    trade.remoteId ??= _uuid.v4();
+    trade.updatedAt = DateTime.now();
+
     await box.add(trade);
+
+    unawaited(SyncService.pushTrade(trade));
   }
 
   /// Ambil semua trade yang tersimpan.
@@ -45,7 +61,14 @@ class HiveService {
   static Future<void> deleteTrade(int index) async {
     final box = await openTradeBox();
 
+    final trade = box.getAt(index);
+    final remoteId = trade?.remoteId;
+
     await box.deleteAt(index);
+
+    if (remoteId != null) {
+      unawaited(SyncService.softDeleteTrade(remoteId));
+    }
   }
 
   /// Hapus seluruh data trade.
@@ -71,7 +94,12 @@ class HiveService {
 
     final box = await openAccountBox();
 
+    tx.remoteId ??= _uuid.v4();
+    tx.updatedAt = DateTime.now();
+
     await box.add(tx);
+
+    unawaited(SyncService.pushAccountTransaction(tx));
 
     AppLogger.log("SAVE ACCOUNT SUCCES");
   }
@@ -85,7 +113,13 @@ class HiveService {
 
   /// Hapus satu transaksi akun tertentu.
   static Future deleteAccountTransaction(AccountTransactionModel tx) async {
+    final remoteId = tx.remoteId;
+
     await tx.delete();
+
+    if (remoteId != null) {
+      unawaited(SyncService.softDeleteAccountTransaction(remoteId));
+    }
   }
 
   /// Hapus seluruh data transaksi akun.
@@ -101,6 +135,10 @@ class HiveService {
 
   /// Hapus seluruh data aplikasi (trade + transaksi akun).
   /// Dipakai untuk fitur "reset semua data".
+  ///
+  /// Catatan: ini HANYA menghapus data lokal, tidak mempropagasi hapus
+  /// massal ke Supabase — "reset" di device ini tidak dimaksudkan untuk
+  /// menghapus backup cloud user.
   static Future<void> clearAll() async {
     await clearTrades();
 

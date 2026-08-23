@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
@@ -22,16 +23,22 @@ class OCRService {
 
     final textRecognizer = TextRecognizer();
 
-    final recognizedText = await textRecognizer.processImage(inputImage);
+    try {
+      final recognizedText = await textRecognizer.processImage(inputImage).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () => throw TimeoutException(
+          "Text recognizer ML Kit tidak merespons (kemungkinan model belum "
+          "ter-download, cek koneksi internet)",
+        ),
+      );
 
-    AppLogger.log("========== HASIL OCR ==========");
-    AppLogger.log(recognizedText.text);
-    AppLogger.log("===============================");
+      AppLogger.log("========== HASIL OCR ==========");
+      AppLogger.log(recognizedText.text);
+      AppLogger.log("===============================");
 
-    final trade = OCRParser.parse(recognizedText.text);
-
-    textRecognizer.close();
-
-    return trade;
+      return OCRParser.parse(recognizedText.text);
+    } finally {
+      textRecognizer.close();
+    }
   }
 }

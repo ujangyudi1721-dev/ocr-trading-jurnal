@@ -25,10 +25,36 @@ class AccountTransactionModel extends HiveObject {
   @HiveField(2)
   double amount;
 
+  /// Catatan/keterangan bebas dari user (mis. "TF dari BCA"), `null`/kosong
+  /// kalau tidak diisi.
+  @HiveField(3)
+  String? note;
+
+  /// ID stabil untuk sync ke Supabase (uuid v4, di-generate sekali saat
+  /// transaksi pertama kali disimpan / saat backfill data lama). `null`
+  /// berarti baris ini belum pernah disentuh proses sync.
+  @HiveField(4)
+  String? remoteId;
+
+  /// Kapan transaksi ini terakhir diubah secara lokal. Dipakai untuk
+  /// keputusan last-write-wins saat sync — harus di-set sinkron setiap kali
+  /// ada perubahan lokal, sebelum request ke Supabase dikirim.
+  @HiveField(5)
+  DateTime? updatedAt;
+
+  /// Kapan transaksi ini dihapus (soft delete, dipropagasi ke device lain
+  /// lewat sync). `null` selama transaksi masih aktif.
+  @HiveField(6)
+  DateTime? deletedAt;
+
   AccountTransactionModel({
     required this.date,
     required this.type,
     required this.amount,
+    this.note,
+    this.remoteId,
+    this.updatedAt,
+    this.deletedAt,
   });
 
   // ==========================================

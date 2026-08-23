@@ -43,17 +43,26 @@ class _HomePageState extends State<HomePage> {
   /// Buka gallery, biarkan user pilih sampai [maxImages] screenshot.
   /// Reset hasil scan sebelumnya karena gambarnya berganti.
   Future<void> pickImage() async {
-    final picker = ImagePicker();
+    try {
+      final picker = ImagePicker();
 
-    final List<XFile> images = await picker.pickMultiImage(limit: maxImages);
+      final List<XFile> images = await picker.pickMultiImage(
+        limit: maxImages,
+      );
 
-    if (images.isEmpty) return;
+      if (images.isEmpty || !mounted) return;
 
-    setState(() {
-      imageFiles = images.map((image) => File(image.path)).toList();
-      trades = [];
-      emotions = [];
-    });
+      setState(() {
+        imageFiles = images.map((image) => File(image.path)).toList();
+        trades = [];
+        emotions = [];
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal membuka galeri: $e')),
+      );
+    }
   }
 
   /// Jalankan OCR ([OCRService]) satu-per-satu untuk setiap [imageFiles].
@@ -66,21 +75,29 @@ class _HomePageState extends State<HomePage> {
       emotions = [];
     });
 
-    final List<TradeModel> results = [];
+    try {
+      final List<TradeModel> results = [];
 
-    for (final file in imageFiles) {
-      final result = await OCRService.scanTrade(file);
+      for (final file in imageFiles) {
+        final result = await OCRService.scanTrade(file);
 
-      results.add(result);
+        results.add(result);
+      }
+
+      if (!mounted) return;
+
+      setState(() {
+        trades = results;
+        emotions = List<String?>.filled(results.length, null);
+        isScanning = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => isScanning = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal scan OCR: $e')));
     }
-
-    if (!mounted) return;
-
-    setState(() {
-      trades = results;
-      emotions = List<String?>.filled(results.length, null);
-      isScanning = false;
-    });
   }
 
   /// Toggle tag emosi untuk trade ke-[index] menjadi [key].

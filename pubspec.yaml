@@ -46,11 +46,14 @@ dependencies:
   pdf: ^3.13.0
   path_provider: ^2.1.6
   share_plus: ^13.3.0
+  graphify: ^1.2.1
+  supabase_flutter: ^2.8.0
+  uuid: ^4.5.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-    
+
   hive_generator: ^2.0.1
   build_runner: ^2.4.13
 
