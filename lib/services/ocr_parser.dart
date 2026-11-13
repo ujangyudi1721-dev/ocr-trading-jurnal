@@ -84,11 +84,11 @@ class OCRParser {
     // =========================
 
     final profitMatches = RegExp(
-      r'([+-]\d+\.\d+)\s*USC',
+      r'([+-](?:\d{1,3}(?:,\d{3})+|\d+)\.\d+)\s*USC',
     ).allMatches(text).toList();
 
     if (profitMatches.isNotEmpty) {
-      profit = profitMatches.last.group(1)!;
+      profit = profitMatches.last.group(1)!.replaceAll(',','');
     }
 
     // =========================

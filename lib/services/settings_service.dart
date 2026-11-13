@@ -9,6 +9,8 @@ import 'sync_service.dart';
 /// Risk Limit, plus bookmark waktu sync terakhir). Beda box dari
 /// [HiveService] karena ini "settings", bukan data transaksi.
 class SettingsService {
+  static const String _tradingRulesKey = "trading_rules";
+
   static const String boxName = "settings";
 
   static const String _maxLossKey = "max_loss_percent";
@@ -85,5 +87,23 @@ class SettingsService {
     final box = await _openBox();
 
     await box.put(_lastSyncedAtKey, time.toIso8601String());
+  }
+
+  static const List<String> defaultTradingRules = [
+    'Stop Loss tidak boleh melebihi presentasi yang ditentukan',
+    'Tidak boleh melanggar aturan',
+  ];
+
+  static Future<List<String>> getTradingRules() async {
+    final box = await _openBox();
+    final saved = box.get(_tradingRulesKey);
+
+    if (saved == null) return List<String>.from(defaultTradingRules);
+    return List<String>.from(saved as List);
+  }
+
+  static Future<void> saveTradingRules(List<String> rules) async {
+    final box = await _openBox();
+    await box.put(_tradingRulesKey, rules);
   }
 }
