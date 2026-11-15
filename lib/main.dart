@@ -5,6 +5,7 @@ import 'models/trade_model.dart';
 import 'pages/auth_gate.dart';
 import 'services/migration_service.dart';
 import 'services/supabase_service.dart';
+import 'pages/splash_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,21 +40,39 @@ Future<void> main() async {
   runApp(MyApp(configError: configError));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   final String? configError;
 
   const MyApp({super.key, this.configError});
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  bool _showSplash = true;
+
+  @override
   Widget build(BuildContext context) {
+    final Widget home;
+
+    if (widget.configError != null) {
+      home = _ConfigErrorPage(message: widget.configError!);
+    } else if (_showSplash) {
+      home = SplashPage(
+        onFinish: () => setState(() => _showSplash = false),
+      );
+    } else {
+      home = const AuthGate();
+    }
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'OCR Trading Journal',
-      home: configError != null ? _ConfigErrorPage(message: configError!) : const AuthGate(),
+      home: home,
     );
   }
 }
-
 /// Ditampilkan kalau setup awal (saat ini: kredensial Supabase) gagal,
 /// supaya user/developer langsung lihat penyebabnya di layar — bukan
 /// nyangkut di splash screen tanpa penjelasan.
