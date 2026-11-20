@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-
+import '../models/account_timeline_model.dart';
+import '../widgets/dashboard/equity_candle_chart.dart';
 import '../models/analytics_result_model.dart';
+import '../services/rule_check_service.dart';
 
 import '../services/hive_service.dart';
 import '../services/account_timeline_service.dart';
@@ -40,6 +42,9 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   AnalyticsResultModel? analytics;
 
+    List<AccountTimelineModel> timeline = [];
+  bool showCandles = false;
+
   double maxLossPercent = SettingsService.defaultMaxLossPercent;
   double profitTargetPercent = SettingsService.defaultProfitTargetPercent;
 
@@ -60,7 +65,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
     final transactions = await HiveService.getAccountTransactions();
 
-    final timeline = AccountTimelineService.generate(
+    timeline = AccountTimelineService.generate(
       transactions: transactions,
       trades: trades,
     );
@@ -70,6 +75,19 @@ class _DashboardPageState extends State<DashboardPage> {
       maxLossPercent: maxLossPercent,
       profitTargetPercent: profitTargetPercent,
     );
+
+        final violations = RuleCheckService.check(
+      trades: trades,
+      timeline: timeline,
+      settings: RuleSettings(maxLossPercent: maxLossPercent),
+    );
+
+    AppLogger.log("");
+    AppLogger.log("========== RULE VIOLATIONS ==========");
+    AppLogger.log("Total: ${violations.length}");
+    for (final v in violations) {
+      AppLogger.log("${v.ticket} | ${v.title} | ${v.detail}");
+    }
 
     final result = analytics!;
 
@@ -275,7 +293,30 @@ class _DashboardPageState extends State<DashboardPage> {
 
               const SizedBox(height: 15),
 
-              EquityChart(analytics: analytics!),
+                            Align(
+                alignment: Alignment.centerRight,
+                child: SegmentedButton<bool>(
+                  segments: const [
+                    ButtonSegment(
+                      value: false,
+                      label: Text('Garis'),
+                      icon: Icon(Icons.show_chart),
+                    ),
+                    ButtonSegment(
+                      value: true,
+                      label: Text('Candle'),
+                      icon: Icon(Icons.bar_chart),
+                    ),
+                  ],
+                  selected: {showCandles},
+                  onSelectionChanged: (s) =>
+                      setState(() => showCandles = s.first),
+                ),
+              ),
+              const SizedBox(height: 8),
+              showCandles
+                  ? EquityCandleChart(timeline: timeline)
+                  : EquityChart(analytics: analytics!),
 
               const SizedBox(height: 15),
 
