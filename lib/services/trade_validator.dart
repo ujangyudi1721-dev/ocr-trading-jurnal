@@ -3,20 +3,31 @@ import '../models/trade_model.dart';
 /// Validasi apakah hasil parsing OCR ([OCRParser]) cukup lengkap untuk
 /// disimpan, atau harus ditolak/diminta scan ulang.
 class TradeValidator {
-  /// `true` kalau [trade] punya cukup data untuk disimpan.
-  ///
-  /// Field yang gagal terbaca oleh [OCRParser] diisi "UNKNOWN" —
-  /// kalau ticket atau pair masih "UNKNOWN", trade dianggap tidak valid
-  /// karena dua field itu wajib ada untuk mengidentifikasi trade-nya.
-  static bool isValid(TradeModel trade) {
+  /// Daftar alasan kenapa [trade] tidak valid. Kosong = valid.
+  static List<String> reasons(TradeModel trade) {
+    final List<String> result = [];
+
     if (trade.ticket == "UNKNOWN") {
-      return false;
+      result.add("Nomor tiket tidak terbaca");
     }
 
     if (trade.pair == "UNKNOWN") {
-      return false;
+      result.add("Pair tidak terbaca");
     }
 
-    return true;
+    if (trade.openDateTime == null) {
+      result.add('Waktu buka tidak terbaca (teks: "${trade.openTime}")');
+    }
+
+    if (trade.closeDateTime == null) {
+      result.add('Waktu tutup tidak terbaca (teks: "${trade.closeTime}")');
+    }
+
+    return result;
+  }
+
+  /// `true` kalau [trade] punya cukup data untuk disimpan.
+  static bool isValid(TradeModel trade) {
+    return reasons(trade).isEmpty;
   }
 }

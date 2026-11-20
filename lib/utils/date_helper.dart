@@ -1,13 +1,6 @@
-/// Kumpulan helper untuk parsing & format tanggal.
-///
-/// Aplikasi ini menyimpan tanggal sebagai `String` di banyak tempat
-/// (hasil OCR, input manual), dengan dua format berbeda yang harus
-/// dikenali sekaligus — lihat [parse]. Semua kode lain di app ini
-/// (models, services) selalu lewat sini untuk urusan tanggal, supaya
-/// aturan parsing/format hanya ada di satu tempat.
 class DateHelper {
   // ==========================================================
-  // MONTH MAP (INDONESIA)
+  // MONTH MAP (INDONESIA + ENGLISH)
   // ==========================================================
 
   static const Map<String, int> _months = {
@@ -16,122 +9,101 @@ class DateHelper {
     "Mar": 3,
     "Apr": 4,
     "Mei": 5,
+    "May": 5,
     "Jun": 6,
     "Jul": 7,
     "Agu": 8,
+    "Aug": 8,
     "Sep": 9,
     "Okt": 10,
+    "Oct": 10,
     "Nov": 11,
     "Des": 12,
+    "Dec": 12,
   };
 
   // ==========================================================
   // PARSE DATE
   //
   // Support:
-  //
-  // 1.
-  // 2 Agu 2026 17.08.15
-  //
-  // 2.
-  // 2026-08-06 08:41:08.572515
+  // 1. 2 Agu 2026 17.08.15
+  // 2. 2026-08-06 08:41:08.572515
   // ==========================================================
 
   static DateTime? parse(String text) {
     text = text.trim();
 
-    // ======================================================
     // FORMAT ISO
-    //
-    // Contoh:
-    // 2026-08-06 08:41:08.572515
-    // ======================================================
-
     try {
       return DateTime.parse(text);
     } catch (_) {}
 
-    // ======================================================
     // FORMAT OCR
-    //
-    // Contoh:
-    // 2 Agu 2026 17.08.15
-    // ======================================================
-
     try {
-      final parts = text.split(" ");
-
-      if (parts.length < 4) {
-        return null;
-      }
+      // Split on ANY whitespace (space, new line, tab), not only " ".
+      final parts = text.split(RegExp(r'\s+'));
+      if (parts.length < 4) return null;
 
       final day = int.parse(parts[0]);
 
-      final month = _months[parts[1]];
-
-      if (month == null) {
-        return null;
-      }
+      final month = _months[_normalizeMonth(parts[1])];
+      if (month == null) return null;
 
       final year = int.parse(parts[2]);
 
-      final normalizedTime = parts[3].replaceAll(",", ".");
-      final time = normalizedTime.split(".");
-      if (time.length != 3) {
-        return null;
-      }
+      // The time may use ".", "," or ":" between the numbers, and OCR
+      // sometimes gives two characters in a row (for example "10.,44.09").
+      final time = parts[3].split(RegExp(r'[.,:]+'));
+      if (time.length != 3) return null;
 
-      final hour = int.parse(time[0]);
-      final minute = int.parse(time[1]);
-      final second = int.parse(time[2]);
-
-      return DateTime(year, month, day, hour, minute, second);
+      return DateTime(
+        year,
+        month,
+        day,
+        int.parse(time[0]),
+        int.parse(time[1]),
+        int.parse(time[2]),
+      );
     } catch (_) {
       return null;
     }
   }
 
+  /// "NOV", "nov", "N0v", "Nov." -> "Nov"
+  static String _normalizeMonth(String raw) {
+    final letters = raw
+        .replaceAll(RegExp(r'[^A-Za-z0]'), '')
+        .replaceAll('0', 'o')
+        .toLowerCase();
+
+    if (letters.isEmpty) return letters;
+    return letters[0].toUpperCase() + letters.substring(1);
+  }
+
   // ==========================================================
   // FORMAT
-  //
-  // Output:
-  // 02/08/2026 17:08:15
   // ==========================================================
 
+  /// Output: 2026-08-02T17:08:15.000
   static String formatStorage(DateTime date) {
     return date.toIso8601String();
   }
-  // ==========================================================
-  // FORMAT DATE ONLY
-  //
-  // Output:
-  // 02/08/2026
-  // ==========================================================
 
+  /// Output: 02/08/2026
   static String formatDisplay(DateTime date) {
     String two(int value) => value.toString().padLeft(2, "0");
 
     return "${two(date.day)}/${two(date.month)}/${date.year}";
   }
-  // ==========================================================
-  // FORMAT TIME ONLY
-  //
-  // Output:
-  // 17:08:15
-  // ==========================================================
 
+  /// Output: 17:08:15
   static String formatTime(DateTime date) {
     String two(int value) => value.toString().padLeft(2, "0");
 
     return "${two(date.hour)}:${two(date.minute)}:${two(date.second)}";
   }
 
-  // ==========================================================
-  // FORMAT DATE + TIME
-  //
-  // Output:
-  // 02/08/2026 17:08:15
-  // ==========================================================
+  /// Output: 02/08/2026 17:08:15
   static String formatDateTime(DateTime date) {
     return "${formatDisplay(date)} ${formatTime(date)}";
   }

@@ -1,5 +1,6 @@
 import '../models/trade_model.dart';
 import '../utils/app_logger.dart';
+import '../utils/date_helper.dart';
 
 /// Mengekstrak field-field [TradeModel] (pair, lot, profit, tanggal, dst)
 /// dari teks mentah hasil OCR (ML Kit) atas screenshot popup detail
@@ -88,28 +89,76 @@ class OCRParser {
     ).allMatches(text).toList();
 
     if (profitMatches.isNotEmpty) {
-      profit = profitMatches.last.group(1)!.replaceAll(',','');
+      profit = profitMatches.last.group(1)!.replaceAll(',', '');
     }
 
     // =========================
     // OPEN TIME / CLOSE TIME
+    //
+    // Tahan terhadap hasil OCR yang tidak rapi:
+    // - tanggal terpecah beberapa baris
+    // - spasi ganda atau spasi khusus
+    // - jam memakai ":" bukan "."
+    // - angka 0 menggantikan huruf "o" di nama bulan (N0v)
+    // - tanggal dan jam terbaca sebagai potongan terpisah
+    //   (kolom kanan dibaca terpisah dari labelnya)
+    // - pemisah jam ganda, misalnya "10.,44.09"
     // =========================
 
-    final dateMatches = RegExp(
-      r'\d+\s+\w+\s+\d+\s+\d+[.,]\d+[.,]\d+',
-    ).allMatches(text).toList();
+    // Membersihkan hasil tangkapan:
+    // - baris baru / spasi ganda -> satu spasi
+    // - pemisah jam yang berantakan ("10.,44") -> satu titik ("10.44")
+    String cleanDateTime(String raw) {
+      return raw
+          .replaceAll(RegExp(r'\s+'), ' ')
+          .replaceAllMapped(
+            RegExp(r'(\d)[.,:]+(\d)'),
+            (m) => "${m[1]}.${m[2]}",
+          );
+    }
+
+    // Cara 1: tanggal dan jam berdekatan ("20 Nov 2026 10.44.09").
+    // Pemisah jam boleh lebih dari satu karakter ("10.,44.09").
+    final dateTimes = RegExp(
+      r'\d{1,2}\s+[A-Za-z0]{3,4}\.?\s+\d{4}\s+\d{1,2}[.,:]+\d{2}[.,:]+\d{2}',
+    ).allMatches(text).map((m) => cleanDateTime(m.group(0)!)).toList();
+
+    // Cara 2 (cadangan): tanggal dan jam terbaca terpisah. Ambil semua
+    // tanggal dan semua jam, lalu pasangkan menurut urutannya.
+    if (dateTimes.length < 2) {
+      // Hanya terima tanggal yang bulannya dikenal. Ini mencegah teks
+      // seperti "10 pada 3549" (dari "0.10 pada 3549.655") dikira tanggal.
+      bool isRealDate(String d) => DateHelper.parse("$d 00.00.00") != null;
+
+      final dates = RegExp(r'\d{1,2}\s+[A-Za-z0]{3,4}\.?\s+\d{4}')
+          .allMatches(text)
+          .map((m) => cleanDateTime(m.group(0)!))
+          .where(isRealDate)
+          .toList();
+
+      final times = RegExp(
+        r'\d{1,2}[.,:]+\d{2}[.,:]+\d{2}',
+      ).allMatches(text).map((m) => cleanDateTime(m.group(0)!)).toList();
+
+      if (dates.length >= 2 && times.length >= 2) {
+        dateTimes
+          ..clear()
+          ..add("${dates[0]} ${times[0]}")
+          ..add("${dates[1]} ${times[1]}");
+      }
+    }
 
     AppLogger.log("===== DATE MATCHES =====");
 
-    for (var d in dateMatches) {
-      AppLogger.log(d.group(0));
+    for (final d in dateTimes) {
+      AppLogger.log(d);
     }
 
     AppLogger.log("========================");
 
-    if (dateMatches.length >= 2) {
-      openTime = dateMatches[0].group(0)!;
-      closeTime = dateMatches[1].group(0)!;
+    if (dateTimes.length >= 2) {
+      openTime = dateTimes[0];
+      closeTime = dateTimes[1];
     }
 
     // =========================

@@ -38,6 +38,9 @@ class _HomePageState extends State<HomePage> {
   /// sejajar juga) — `null` berarti belum/tidak ditandai.
   List<String?> emotions = [];
 
+  /// Teks mentah hasil OCR untuk tiap gambar (index-nya sejajar [trades]).
+  List<String> rawTexts = [];
+
   bool isScanning = false;
 
   /// Buka gallery, biarkan user pilih sampai [maxImages] screenshot.
@@ -55,6 +58,7 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         imageFiles = images.map((image) => File(image.path)).toList();
         trades = [];
+        rawTexts = [];
         emotions = [];
       });
     } catch (e) {
@@ -72,22 +76,26 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       isScanning = true;
       trades = [];
+      rawTexts = [];
       emotions = [];
     });
 
     try {
       final List<TradeModel> results = [];
+      final List<String> texts = [];
 
       for (final file in imageFiles) {
         final result = await OCRService.scanTrade(file);
 
         results.add(result);
+        texts.add(OCRService.lastRawText);
       }
 
       if (!mounted) return;
 
       setState(() {
         trades = results;
+        rawTexts = texts;
         emotions = List<String?>.filled(results.length, null);
         isScanning = false;
       });
@@ -98,6 +106,25 @@ class _HomePageState extends State<HomePage> {
         context,
       ).showSnackBar(SnackBar(content: Text('Gagal scan OCR: $e')));
     }
+  }
+
+  /// Tampilkan teks mentah OCR gambar ke-[index] (bisa di-select dan di-copy).
+  void _showRawText(int index) {
+    final text = index < rawTexts.length ? rawTexts[index] : "";
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text("Teks OCR gambar ${index + 1}"),
+        content: SingleChildScrollView(child: SelectableText(text)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text("Tutup"),
+          ),
+        ],
+      ),
+    );
   }
 
   /// Toggle tag emosi untuk trade ke-[index] menjadi [key].
@@ -146,6 +173,7 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       imageFiles = [];
       trades = [];
+      rawTexts = [];
       emotions = [];
     });
   }
@@ -258,6 +286,27 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
+
+                  if (!TradeValidator.isValid(trades[i])) ...[
+                    for (final reason in TradeValidator.reasons(trades[i]))
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "• $reason",
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton(
+                        onPressed: () => _showRawText(i),
+                        child: const Text("Lihat teks OCR"),
+                      ),
+                    ),
+                  ],
 
                   const SizedBox(height: 5),
 

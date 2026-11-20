@@ -15,6 +15,8 @@ import 'ocr_parser.dart';
 /// -> OCR (baca teks dari gambar via ML Kit) -> Parser (ekstrak
 /// field-field trade dari teks mentah) -> TradeModel.
 class OCRService {
+   /// The raw text of the last scan (used to find OCR problems).
+  static String lastRawText = "";
   /// Jalankan seluruh alur OCR untuk satu file gambar.
   static Future<TradeModel> scanTrade(File imageFile) async {
     final croppedFile = await ImageCropperService.cropPopup(imageFile);
@@ -35,6 +37,8 @@ class OCRService {
       AppLogger.log("========== HASIL OCR ==========");
       AppLogger.log(recognizedText.text);
       AppLogger.log("===============================");
+
+            lastRawText = recognizedText.text;
 
       return OCRParser.parse(recognizedText.text);
     } finally {
